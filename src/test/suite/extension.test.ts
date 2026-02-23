@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 
 suite("Extension Test Suite", () => {
   test("Extension should be present", async () => {
-    const extension = vscode.extensions.getExtension("local.where-progress");
+    const extension = vscode.extensions.getExtension("11cookies11.where-progress");
     assert.ok(extension, "Extension not found");
   });
 

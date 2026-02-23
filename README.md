@@ -94,7 +94,7 @@ npm run preview:fast
 ## Testing
 
 - `npm test`: run comprehensive unit tests (parser + hierarchy + status mapping)
-- `npm run test:integration`: run VS Code extension host integration tests
+- `npm run test:integration`: run VS Code extension host integration tests (auto-skip on Windows unless `FORCE_INTEGRATION_TESTS=1`)
 - `npm run test:all`: run unit + integration tests
 
 ## License

@@ -94,7 +94,7 @@ npm run preview:fast
 ## 测试
 
 - `npm test`：运行完整单元测试（解析、层级、状态映射）
-- `npm run test:integration`：运行 VS Code 扩展宿主集成测试
+- `npm run test:integration`：运行 VS Code 扩展宿主集成测试（Windows 默认跳过，可设 `FORCE_INTEGRATION_TESTS=1` 强制执行）
 - `npm run test:all`：运行单元 + 集成测试
 
 ## 许可证

@@ -2,8 +2,16 @@
   "name": "where-progress",
   "displayName": "Where Progress",
   "description": "Visualize agent plan and project progress directly in VS Code.",
-  "version": "0.0.1",
-  "publisher": "local",
+  "version": "0.1.0",
+  "publisher": "11cookies11",
+  "license": "MIT",
+  "keywords": [
+    "progress",
+    "plan",
+    "agent",
+    "markdown",
+    "task"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/11cookies11/Where.git"
@@ -16,8 +24,13 @@
     "vscode": "^1.85.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Visualization"
   ],
+  "galleryBanner": {
+    "color": "#0E7A7A",
+    "theme": "light"
+  },
   "activationEvents": [
     "onStartupFinished",
     "onCommand:where.initializeSourceFile",
@@ -214,9 +227,10 @@
     "pretest:unit": "npm run compile",
     "test:unit": "mocha --ui tdd out/test/unit/**/*.js",
     "pretest:integration": "npm run compile",
-    "test:integration": "node ./out/test/runTest.js",
+    "test:integration": "node ./scripts/run-integration-test.js",
     "test:all": "npm run test:unit && npm run test:integration",
     "test": "npm run test:unit",
+    "release:check": "npm run test && npm run package:vsix",
     "package:vsix": "vsce package",
     "vscode:prepublish": "npm run compile"
   },
