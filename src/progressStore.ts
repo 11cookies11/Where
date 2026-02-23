@@ -2,11 +2,19 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as vscode from "vscode";
 import {
+  ParseWarning,
   PlanData,
   TaskStatus,
+  analyzeMarkdownPlanText,
   markerByStatus,
   parseMarkdownPlanText
 } from "./progressParser";
+import {
+  deleteTaskInSource,
+  moveTaskIndentInSource,
+  renameTaskInSource,
+  setTaskStatusInSource
+} from "./sourceEditor";
 
 const DEFAULT_SOURCE_FILE = ".where-agent-progress.md";
 const AGENTS_FILE_NAME = "AGENTS.md";
@@ -96,6 +104,31 @@ export class ProgressStore {
     this.notifyChanged();
   }
 
+  public async setTaskStatus(taskId: string, status: TaskStatus): Promise<void> {
+    await this.editSource((source) => setTaskStatusInSource(source, taskId, status));
+  }
+
+  public async renameTask(taskId: string, title: string): Promise<void> {
+    await this.editSource((source) => renameTaskInSource(source, taskId, title));
+  }
+
+  public async deleteTask(taskId: string): Promise<void> {
+    await this.editSource((source) => deleteTaskInSource(source, taskId));
+  }
+
+  public async promoteTask(taskId: string): Promise<void> {
+    await this.editSource((source) => moveTaskIndentInSource(source, taskId, "promote"));
+  }
+
+  public async demoteTask(taskId: string): Promise<void> {
+    await this.editSource((source) => moveTaskIndentInSource(source, taskId, "demote"));
+  }
+
+  public async validateSource(): Promise<ParseWarning[]> {
+    const source = await this.readSourceText();
+    return analyzeMarkdownPlanText(source);
+  }
+
   public resolveSourceUri(): vscode.Uri | null {
     const filePath = this.resolveSourceFilePath();
     if (!filePath) {
@@ -116,6 +149,38 @@ export class ProgressStore {
     const config = vscode.workspace.getConfiguration("where");
     const configured = config.get<string>("sourceFile")?.trim() || DEFAULT_SOURCE_FILE;
     return path.join(folder.uri.fsPath, configured);
+  }
+
+  private async editSource(mutator: (source: string) => string): Promise<void> {
+    const filePath = this.resolveSourceFilePath();
+    if (!filePath) {
+      throw new Error("Open a workspace folder first.");
+    }
+
+    try {
+      await fs.access(filePath);
+    } catch {
+      await this.ensureSourceTemplate();
+    }
+
+    const source = await this.readSourceText();
+    const next = mutator(source);
+    await fs.writeFile(filePath, next, "utf8");
+    this.notifyChanged();
+  }
+
+  private async readSourceText(): Promise<string> {
+    const filePath = this.resolveSourceFilePath();
+    if (!filePath) {
+      throw new Error("Open a workspace folder first.");
+    }
+
+    try {
+      return await fs.readFile(filePath, "utf8");
+    } catch {
+      await this.ensureSourceTemplate();
+      return await fs.readFile(filePath, "utf8");
+    }
   }
 
   private resolveAgentsFilePath(): string | null {
@@ -156,7 +221,14 @@ export class ProgressStore {
   }
 }
 
-export { PlanData, Task, TaskStatus, parseMarkdownPlanText, statusLabel } from "./progressParser";
+export {
+  ParseWarning,
+  PlanData,
+  Task,
+  TaskStatus,
+  parseMarkdownPlanText,
+  statusLabel
+} from "./progressParser";
 
 function defaultAgentsTemplate(): string {
   return [

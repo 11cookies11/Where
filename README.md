@@ -81,6 +81,13 @@ npm run preview:fast
 - `Where: Initialize Source File`
 - `Where: Open Source File`
 - `Where: Write Task To Source`
+- `Where: Cycle Task Status`
+- `Where: Set Task Status`
+- `Where: Rename Task`
+- `Where: Delete Task`
+- `Where: Promote Task (Outdent)`
+- `Where: Demote Task (Indent)`
+- `Where: Validate Source File`
 - `Where: Open Progress Dashboard`
 - `Where: Refresh Progress`
 

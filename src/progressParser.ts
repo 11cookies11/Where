@@ -16,6 +16,12 @@ export interface PlanData {
   tasks: Task[];
 }
 
+export interface ParseWarning {
+  line: number;
+  code: "invalid-task-line" | "tab-indentation" | "odd-indentation" | "duplicate-task-title";
+  message: string;
+}
+
 export function parseMarkdownPlanText(
   text: string,
   updatedAt: string,
@@ -71,6 +77,77 @@ export function parseMarkdownPlanText(
   }
 
   return { title, updatedAt, tasks };
+}
+
+export function analyzeMarkdownPlanText(text: string): ParseWarning[] {
+  const warnings: ParseWarning[] = [];
+  const lines = text.split(/\r?\n/);
+  const seenTitles = new Map<string, number>();
+
+  for (let lineNo = 0; lineNo < lines.length; lineNo += 1) {
+    const line = lines[lineNo];
+    if (!line.trim()) {
+      continue;
+    }
+
+    const rawTask = line.match(/^([ \t]*)[-*]\s+\[(.+?)\]\s*(.*)$/i);
+    if (rawTask) {
+      const rawIndent = rawTask[1];
+      const markerRaw = rawTask[2].toLowerCase();
+      const marker = markerRaw.trim();
+      const title = rawTask[3].trim();
+
+      if (rawIndent.includes("\t")) {
+        warnings.push({
+          line: lineNo + 1,
+          code: "tab-indentation",
+          message: "Tab indentation detected. Use spaces for stable hierarchy parsing."
+        });
+      }
+      const indent = measureIndent(rawIndent);
+      if (indent % 2 !== 0) {
+        warnings.push({
+          line: lineNo + 1,
+          code: "odd-indentation",
+          message: "Indentation is not a multiple of 2 spaces."
+        });
+      }
+
+      const isMarkerValid =
+        markerRaw === " " || ["x", "~", "!", "todo", "in_progress", "blocked", "done"].includes(marker);
+      if (!isMarkerValid || !title) {
+        warnings.push({
+          line: lineNo + 1,
+          code: "invalid-task-line",
+          message: "Task line format should be: - [ ] title / - [~] title / - [!] title / - [x] title."
+        });
+        continue;
+      }
+
+      const normalized = title.toLowerCase();
+      if (seenTitles.has(normalized)) {
+        const firstLine = seenTitles.get(normalized);
+        warnings.push({
+          line: lineNo + 1,
+          code: "duplicate-task-title",
+          message: `Duplicate task title (first seen at line ${firstLine}).`
+        });
+      } else {
+        seenTitles.set(normalized, lineNo + 1);
+      }
+      continue;
+    }
+
+    if (line.trimStart().startsWith("-") || line.trimStart().startsWith("*")) {
+      warnings.push({
+        line: lineNo + 1,
+        code: "invalid-task-line",
+        message: "Bullet line detected but not in Where task format."
+      });
+    }
+  }
+
+  return warnings;
 }
 
 function measureIndent(rawIndent: string): number {

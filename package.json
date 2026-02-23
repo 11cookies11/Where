@@ -23,6 +23,7 @@
     "onCommand:where.initializeSourceFile",
     "onCommand:where.openSourceFile",
     "onCommand:where.writeTaskToSource",
+    "onCommand:where.validateSource",
     "onCommand:where.openDashboard",
     "onView:where.projectProgress"
   ],
@@ -40,6 +41,34 @@
       {
         "command": "where.writeTaskToSource",
         "title": "Where: Write Task To Source"
+      },
+      {
+        "command": "where.cycleTaskStatus",
+        "title": "Where: Cycle Task Status"
+      },
+      {
+        "command": "where.setTaskStatus",
+        "title": "Where: Set Task Status"
+      },
+      {
+        "command": "where.renameTask",
+        "title": "Where: Rename Task"
+      },
+      {
+        "command": "where.deleteTask",
+        "title": "Where: Delete Task"
+      },
+      {
+        "command": "where.promoteTask",
+        "title": "Where: Promote Task (Outdent)"
+      },
+      {
+        "command": "where.demoteTask",
+        "title": "Where: Demote Task (Indent)"
+      },
+      {
+        "command": "where.validateSource",
+        "title": "Where: Validate Source File"
       },
       {
         "command": "where.openDashboard",
@@ -93,6 +122,43 @@
           "command": "where.writeTaskToSource",
           "when": "view == where.projectProgress",
           "group": "navigation@5"
+        },
+        {
+          "command": "where.validateSource",
+          "when": "view == where.projectProgress",
+          "group": "navigation@6"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "where.cycleTaskStatus",
+          "when": "view == where.projectProgress && viewItem == where.task",
+          "group": "inline@1"
+        },
+        {
+          "command": "where.setTaskStatus",
+          "when": "view == where.projectProgress && viewItem == where.task",
+          "group": "inline@2"
+        },
+        {
+          "command": "where.renameTask",
+          "when": "view == where.projectProgress && viewItem == where.task",
+          "group": "navigation@1"
+        },
+        {
+          "command": "where.demoteTask",
+          "when": "view == where.projectProgress && viewItem == where.task",
+          "group": "navigation@2"
+        },
+        {
+          "command": "where.promoteTask",
+          "when": "view == where.projectProgress && viewItem == where.task",
+          "group": "navigation@3"
+        },
+        {
+          "command": "where.deleteTask",
+          "when": "view == where.projectProgress && viewItem == where.task",
+          "group": "navigation@4"
         }
       ],
       "commandPalette": [
@@ -110,6 +176,10 @@
         },
         {
           "command": "where.writeTaskToSource",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "where.validateSource",
           "when": "workspaceFolderCount > 0"
         }
       ]

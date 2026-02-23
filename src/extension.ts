@@ -1,4 +1,4 @@
-import * as vscode from "vscode";
+﻿import * as vscode from "vscode";
 import { PlanData, ProgressStore, Task, statusLabel } from "./progressStore";
 
 class ProgressItem extends vscode.TreeItem {
@@ -15,12 +15,17 @@ class ProgressItem extends vscode.TreeItem {
     );
 
     if (kind === "task" && task) {
-      this.contextValue = "where.taskReadonly";
+      this.contextValue = "where.task";
       const summary = summarizeNode(task);
       const pending = summary.total - summary.done;
-      this.description = `${statusLabel(task.status)} · ${summary.done}/${summary.total} done · ${pending} pending`;
+      this.description = `${statusLabel(task.status)} | ${summary.done}/${summary.total} done | ${pending} pending`;
       this.iconPath = iconByStatus(task.status);
       this.tooltip = `${label}\nStatus: ${statusLabel(task.status)}\nCompleted: ${summary.done}/${summary.total}`;
+      this.command = {
+        command: "where.cycleTaskStatus",
+        title: "Where: Cycle Task Status",
+        arguments: [task.id]
+      };
     } else {
       this.contextValue = "where.meta";
       this.iconPath = new vscode.ThemeIcon("info");
@@ -89,6 +94,104 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider("where.projectProgress", provider),
     vscode.commands.registerCommand("where.refreshProgress", () => store.notifyChanged()),
+    vscode.commands.registerCommand("where.cycleTaskStatus", async (taskArg?: unknown) => {
+      const taskId = extractTaskId(taskArg);
+      if (!taskId) {
+        return;
+      }
+      const current = await store.loadPlan();
+      const target = current ? flattenTasks(current.tasks).find((task) => task.id === taskId) : undefined;
+      if (!target) {
+        return;
+      }
+      const next = cycleStatus(target.status);
+      await store.setTaskStatus(taskId, next);
+      vscode.window.showInformationMessage(`Task status updated to ${statusLabel(next)}.`);
+    }),
+    vscode.commands.registerCommand("where.setTaskStatus", async (taskArg?: unknown) => {
+      const taskId = extractTaskId(taskArg);
+      if (!taskId) {
+        return;
+      }
+      const picked = await vscode.window.showQuickPick(
+        [
+          { label: "Todo", value: "todo" },
+          { label: "In Progress", value: "in_progress" },
+          { label: "Blocked", value: "blocked" },
+          { label: "Done", value: "done" }
+        ],
+        { placeHolder: "Set task status" }
+      );
+      if (!picked) {
+        return;
+      }
+      await store.setTaskStatus(taskId, picked.value as Task["status"]);
+      vscode.window.showInformationMessage(`Task status set to ${picked.label}.`);
+    }),
+    vscode.commands.registerCommand("where.renameTask", async (taskArg?: unknown) => {
+      const taskId = extractTaskId(taskArg);
+      if (!taskId) {
+        return;
+      }
+      const plan = await store.loadPlan();
+      const existing = plan ? flattenTasks(plan.tasks).find((task) => task.id === taskId) : undefined;
+      const title = await vscode.window.showInputBox({
+        prompt: "Rename task",
+        value: existing?.title ?? ""
+      });
+      if (!title?.trim()) {
+        return;
+      }
+      await store.renameTask(taskId, title);
+      vscode.window.showInformationMessage("Task renamed.");
+    }),
+    vscode.commands.registerCommand("where.deleteTask", async (taskArg?: unknown) => {
+      const taskId = extractTaskId(taskArg);
+      if (!taskId) {
+        return;
+      }
+      const pick = await vscode.window.showWarningMessage(
+        "Delete this task and all its subtasks?",
+        { modal: true },
+        "Delete"
+      );
+      if (pick !== "Delete") {
+        return;
+      }
+      await store.deleteTask(taskId);
+      vscode.window.showInformationMessage("Task deleted.");
+    }),
+    vscode.commands.registerCommand("where.promoteTask", async (taskArg?: unknown) => {
+      const taskId = extractTaskId(taskArg);
+      if (!taskId) {
+        return;
+      }
+      await store.promoteTask(taskId);
+      vscode.window.showInformationMessage("Task promoted.");
+    }),
+    vscode.commands.registerCommand("where.demoteTask", async (taskArg?: unknown) => {
+      const taskId = extractTaskId(taskArg);
+      if (!taskId) {
+        return;
+      }
+      await store.demoteTask(taskId);
+      vscode.window.showInformationMessage("Task demoted.");
+    }),
+    vscode.commands.registerCommand("where.validateSource", async () => {
+      const warnings = await store.validateSource();
+      if (warnings.length === 0) {
+        vscode.window.showInformationMessage("Source file is valid.");
+        return;
+      }
+      const output = vscode.window.createOutputChannel("Where Validation");
+      output.clear();
+      output.appendLine("Where source validation warnings:");
+      for (const warning of warnings) {
+        output.appendLine(`- L${warning.line} [${warning.code}] ${warning.message}`);
+      }
+      output.show(true);
+      vscode.window.showWarningMessage(`Source has ${warnings.length} validation warnings.`);
+    }),
     vscode.commands.registerCommand("where.initializeSourceFile", async () => {
       const source = await store.ensureSourceTemplate();
       const shouldCreateAgents = store.shouldCreateAgentsOnInit();
@@ -236,7 +339,7 @@ function buildDashboardHtml(plan: PlanData | null): string {
     .map(
       ({ task, depth }) => `
       <tr>
-        <td style="padding-left: ${8 + depth * 18}px;">${depth > 0 ? "↳ " : ""}${escapeHtml(task.title)}</td>
+        <td style="padding-left: ${8 + depth * 18}px;">${depth > 0 ? "鈫?" : ""}${escapeHtml(task.title)}</td>
         <td><span class="status">${statusLabel(task.status)}</span></td>
         <td>${new Date(task.updatedAt).toLocaleString()}</td>
       </tr>
@@ -488,3 +591,31 @@ function summarizeNode(task: Task): { done: number; total: number } {
   const done = all.filter((item) => item.status === "done").length;
   return { done, total: all.length };
 }
+
+function cycleStatus(status: Task["status"]): Task["status"] {
+  switch (status) {
+    case "todo":
+      return "in_progress";
+    case "in_progress":
+      return "blocked";
+    case "blocked":
+      return "done";
+    case "done":
+    default:
+      return "todo";
+  }
+}
+
+function extractTaskId(taskArg: unknown): string | undefined {
+  if (typeof taskArg === "string") {
+    return taskArg;
+  }
+  if (taskArg && typeof taskArg === "object") {
+    const maybeTask = taskArg as { task?: Task };
+    if (maybeTask.task?.id) {
+      return maybeTask.task.id;
+    }
+  }
+  return undefined;
+}
+
