@@ -231,8 +231,8 @@ function buildDashboardHtml(plan: PlanData | null): string {
     .map(
       ({ task, depth }) => `
       <tr>
-        <td>${"&nbsp;".repeat(depth * 4)}${depth > 0 ? "↳ " : ""}${escapeHtml(task.title)}</td>
-        <td>${statusLabel(task.status)}</td>
+        <td style="padding-left: ${8 + depth * 18}px;">${depth > 0 ? "↳ " : ""}${escapeHtml(task.title)}</td>
+        <td><span class="status">${statusLabel(task.status)}</span></td>
         <td>${new Date(task.updatedAt).toLocaleString()}</td>
       </tr>
     `
@@ -249,72 +249,196 @@ function buildDashboardHtml(plan: PlanData | null): string {
       <style>
         :root {
           color-scheme: light dark;
+          --bg: radial-gradient(circle at 20% -10%, rgba(90, 140, 255, 0.18), transparent 32%),
+            radial-gradient(circle at 100% 0%, rgba(68, 212, 173, 0.16), transparent 28%),
+            linear-gradient(180deg, #f6f8fc 0%, #edf2f8 100%);
+          --surface: rgba(255, 255, 255, 0.78);
+          --border: rgba(13, 24, 38, 0.1);
+          --text: #0f1725;
+          --muted: #5d6878;
+          --pill-bg: rgba(15, 23, 37, 0.06);
+          --shadow: 0 20px 48px rgba(16, 23, 36, 0.08);
+        }
+        @media (prefers-color-scheme: dark) {
+          :root {
+            --bg: radial-gradient(circle at 20% -10%, rgba(90, 140, 255, 0.22), transparent 34%),
+              radial-gradient(circle at 100% 0%, rgba(68, 212, 173, 0.2), transparent 30%),
+              linear-gradient(180deg, #0c1118 0%, #0f1621 100%);
+            --surface: rgba(16, 22, 34, 0.72);
+            --border: rgba(200, 220, 255, 0.16);
+            --text: #e9eef8;
+            --muted: #9ea9bc;
+            --pill-bg: rgba(233, 238, 248, 0.08);
+            --shadow: 0 20px 52px rgba(0, 0, 0, 0.35);
+          }
         }
         body {
-          font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
-          margin: 16px;
+          font-family: "SF Pro Display", "Avenir Next", "Segoe UI", sans-serif;
+          margin: 0;
+          padding: 18px;
+          background: var(--bg);
+          color: var(--text);
         }
-        .grid {
+        .shell {
+          max-width: 1080px;
+          margin: 0 auto;
           display: grid;
-          grid-template-columns: repeat(4, minmax(100px, 1fr));
+          grid-template-columns: 1fr;
+          gap: 14px;
+        }
+        .panel {
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          background: var(--surface);
+          backdrop-filter: blur(18px);
+          box-shadow: var(--shadow);
+        }
+        .hero {
+          padding: 18px;
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 12px;
+          align-items: end;
+        }
+        .title {
+          margin: 0;
+          font-size: 24px;
+          letter-spacing: -0.02em;
+          line-height: 1.2;
+        }
+        .sub {
+          margin-top: 8px;
+          color: var(--muted);
+          font-size: 13px;
+          letter-spacing: 0.01em;
+        }
+        .headline {
+          font-size: 28px;
+          font-weight: 650;
+          letter-spacing: -0.03em;
+          text-align: right;
+        }
+        .badge-row {
+          display: flex;
+          flex-wrap: wrap;
           gap: 8px;
-          margin-top: 16px;
+          margin-top: 10px;
         }
-        .card {
-          border: 1px solid rgba(127, 127, 127, 0.35);
-          border-radius: 8px;
-          padding: 10px;
-        }
-        .bar {
-          width: 100%;
-          height: 10px;
+        .badge {
+          border: 1px solid var(--border);
+          background: var(--pill-bg);
+          color: var(--muted);
           border-radius: 999px;
-          background: rgba(127, 127, 127, 0.25);
-          overflow: hidden;
-          margin: 8px 0 2px;
+          padding: 6px 10px;
+          font-size: 12px;
+          letter-spacing: 0.01em;
         }
-        .bar > span {
-          display: block;
-          height: 100%;
-          width: ${percent}%;
-          background: #2e8b57;
+        .stats {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(120px, 1fr));
+          gap: 10px;
+          padding: 0 18px 18px;
+        }
+        .stat {
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          padding: 12px;
+          background: rgba(127, 127, 127, 0.05);
+        }
+        .stat .name {
+          color: var(--muted);
+          font-size: 12px;
+          margin-bottom: 6px;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+        }
+        .stat .value {
+          font-size: 22px;
+          letter-spacing: -0.03em;
+          font-weight: 640;
+          line-height: 1;
+        }
+        .table-wrap {
+          padding: 8px 18px 18px;
         }
         table {
           width: 100%;
-          margin-top: 16px;
           border-collapse: collapse;
+          overflow: hidden;
+          border-radius: 12px;
         }
         th, td {
-          border-bottom: 1px solid rgba(127, 127, 127, 0.3);
+          border-bottom: 1px solid var(--border);
           text-align: left;
-          padding: 8px 4px;
+          padding: 10px 8px;
+          font-size: 13px;
+        }
+        th {
+          color: var(--muted);
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+          font-size: 11px;
+        }
+        tbody tr:last-child td {
+          border-bottom: none;
+        }
+        .status {
+          border: 1px solid var(--border);
+          background: var(--pill-bg);
+          border-radius: 999px;
+          padding: 2px 8px;
+          font-size: 11px;
+          color: var(--muted);
+        }
+        @media (max-width: 760px) {
+          .hero {
+            grid-template-columns: 1fr;
+          }
+          .headline {
+            text-align: left;
+          }
+          .stats {
+            grid-template-columns: repeat(2, minmax(120px, 1fr));
+          }
         }
       </style>
     </head>
     <body>
-      <h2>${escapeHtml(plan.title)}</h2>
-      <div>${done}/${total} tasks done</div>
-      <div>${pending} tasks pending</div>
-      <div class="bar"><span></span></div>
-      <div>${percent}% complete</div>
+      <main class="shell">
+        <section class="panel">
+          <div class="hero">
+            <div>
+              <h2 class="title">${escapeHtml(plan.title)}</h2>
+              <div class="sub">${done}/${total} done, ${pending} pending</div>
+              <div class="badge-row">
+                <span class="badge">Markdown Source</span>
+                <span class="badge">Nested Tasks Enabled</span>
+              </div>
+            </div>
+            <div class="headline">${percent}%</div>
+          </div>
+          <div class="stats">
+            <div class="stat"><div class="name">Todo</div><div class="value">${todo}</div></div>
+            <div class="stat"><div class="name">In Progress</div><div class="value">${inProgress}</div></div>
+            <div class="stat"><div class="name">Blocked</div><div class="value">${blocked}</div></div>
+            <div class="stat"><div class="name">Done</div><div class="value">${done}</div></div>
+          </div>
+        </section>
 
-      <div class="grid">
-        <div class="card"><strong>Todo</strong><div>${todo}</div></div>
-        <div class="card"><strong>In Progress</strong><div>${inProgress}</div></div>
-        <div class="card"><strong>Blocked</strong><div>${blocked}</div></div>
-        <div class="card"><strong>Done</strong><div>${done}</div></div>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Task</th>
-            <th>Status</th>
-            <th>Updated</th>
-          </tr>
-        </thead>
-        <tbody>${taskHtml}</tbody>
-      </table>
+        <section class="panel table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Status</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody>${taskHtml}</tbody>
+          </table>
+        </section>
+      </main>
     </body>
     </html>
   `;
