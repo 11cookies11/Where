@@ -1,33 +1,85 @@
-# <PROJECT_NAME>
+﻿# Where Progress (VS Code Extension)
 
-<SHORT_DESCRIPTION>
+Visualize project progress from a local LLM agent source document.
 
 Language: English | [简体中文](README.zh-CN.md)
 
-## Overview
+## What It Solves
 
-This is a tech-agnostic GitHub template repository for quickly bootstrapping
-any kind of project (library / service / scripts / docs / learning notes).
+Agent chat is rich, but progress is hard to scan. This extension turns your local agent progress file into a live dashboard inside VS Code.
 
-On first use, replace these placeholders:
+- Sidebar task list in Activity Bar (`Where`)
+- Dashboard with completion and status distribution
+- Auto-refresh when source file changes
+- Read-only visualization driven by local agent output
 
-- `<PROJECT_NAME>`: project name
-- `<SHORT_DESCRIPTION>`: one-line description
-- `LICENSE`: choose a license that fits your project
-- `.github/ISSUE_TEMPLATE/*`: adjust issue templates to your needs
+## Source-Driven Mode
 
-## Getting started (as a template)
+The extension reads one workspace-local source file (default: `.where-agent-progress.md`).
+Your local LLM agent updates this file, and the extension refreshes automatically.
 
-1. Click **Use this template** on GitHub to create a new repository
-2. Update `README.md` and other basics (e.g. `LICENSE`, `CONTRIBUTING.md`)
-3. Add your code / docs
+Supported formats:
 
-## Conventions (recommended)
+1. Markdown (recommended)
+```md
+# Plan: VS Code Plugin Progress
+- [ ] Define milestones
+- [~] Implement parser
+- [!] Waiting for external dependency
+- [x] Ship MVP
+```
 
-- Changelog: `CHANGELOG.md` (Keep a Changelog style)
-- Commit messages & PR titles: Conventional Commits (e.g. `feat:`, `fix:`, `chore:`)
-- Community docs: `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`
-- Issue / PR templates: `.github/`
+2. JSON
+```json
+{
+  "title": "VS Code Plugin Progress",
+  "tasks": [
+    { "title": "Define milestones", "status": "todo" },
+    { "title": "Implement parser", "status": "in_progress" },
+    { "title": "Waiting for dependency", "status": "blocked" },
+    { "title": "Ship MVP", "status": "done" }
+  ]
+}
+```
+
+Status map:
+- Markdown: `[ ]` = `todo`, `[~]` = `in_progress`, `[!]` = `blocked`, `[x]` = `done`
+- JSON: `todo | in_progress | blocked | done`
+
+## Configure Source File
+
+Set in VS Code settings:
+
+- `where.sourceFile` (default: `.where-agent-progress.md`)
+
+## Development Scaffold
+
+- TypeScript build pipeline (`tsconfig.json`, `npm run compile`, `npm run watch`)
+- Debug and test launch configs (`.vscode/launch.json`)
+- Build/test tasks (`.vscode/tasks.json`)
+- Extension test harness (`@vscode/test-electron`, `src/test/**`)
+- VSIX packaging script (`npm run package:vsix`)
+
+## Quick Start
+
+1. Install dependencies:
+```bash
+npm install
+```
+2. Compile:
+```bash
+npm run compile
+```
+3. Press `F5` to start Extension Development Host.
+4. Run `Where: Initialize Source File` once.
+5. Let your local agent keep updating the source file.
+
+## Commands
+
+- `Where: Initialize Source File`
+- `Where: Open Source File`
+- `Where: Open Progress Dashboard`
+- `Where: Refresh Progress`
 
 ## License
 

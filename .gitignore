@@ -8,10 +8,19 @@ Thumbs.db
 
 # IDE
 .idea/
-.vscode/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
 
 # Common build outputs (optional)
 dist/
 build/
 out/
+node_modules/
+*.vsix
 
+# Extension local data
+.where-progress.json
+.where-agent-progress.md
+.where-agent-progress.json

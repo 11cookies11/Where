@@ -1,0 +1,147 @@
+{
+  "name": "where-progress",
+  "displayName": "Where Progress",
+  "description": "Visualize agent plan and project progress directly in VS Code.",
+  "version": "0.0.1",
+  "publisher": "local",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/11cookies11/Where.git"
+  },
+  "homepage": "https://github.com/11cookies11/Where",
+  "bugs": {
+    "url": "https://github.com/11cookies11/Where/issues"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:where.initializeSourceFile",
+    "onCommand:where.openSourceFile",
+    "onCommand:where.writeTaskToSource",
+    "onCommand:where.openDashboard",
+    "onView:where.projectProgress"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "where.initializeSourceFile",
+        "title": "Where: Initialize Source File"
+      },
+      {
+        "command": "where.openSourceFile",
+        "title": "Where: Open Source File"
+      },
+      {
+        "command": "where.writeTaskToSource",
+        "title": "Where: Write Task To Source"
+      },
+      {
+        "command": "where.openDashboard",
+        "title": "Where: Open Progress Dashboard"
+      },
+      {
+        "command": "where.refreshProgress",
+        "title": "Where: Refresh Progress"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "where",
+          "title": "Where",
+          "icon": "media/where.svg"
+        }
+      ]
+    },
+    "views": {
+      "where": [
+        {
+          "id": "where.projectProgress",
+          "name": "Project Progress"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "where.initializeSourceFile",
+          "when": "view == where.projectProgress",
+          "group": "navigation@1"
+        },
+        {
+          "command": "where.openSourceFile",
+          "when": "view == where.projectProgress",
+          "group": "navigation@2"
+        },
+        {
+          "command": "where.openDashboard",
+          "when": "view == where.projectProgress",
+          "group": "navigation@3"
+        },
+        {
+          "command": "where.refreshProgress",
+          "when": "view == where.projectProgress",
+          "group": "navigation@4"
+        },
+        {
+          "command": "where.writeTaskToSource",
+          "when": "view == where.projectProgress",
+          "group": "navigation@5"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "where.initializeSourceFile",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "where.openSourceFile",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "where.openDashboard",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "where.writeTaskToSource",
+          "when": "workspaceFolderCount > 0"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Where Progress",
+      "properties": {
+        "where.sourceFile": {
+          "type": "string",
+          "default": ".where-agent-progress.md",
+          "description": "Relative path (from workspace root) to the local agent progress source file. Supports Markdown and JSON."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "clean": "rimraf out .vscode-test",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "node ./out/test/runTest.js",
+    "package:vsix": "vsce package",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.12.12",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.6.2",
+    "mocha": "^10.8.2",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.4.5"
+  }
+}
