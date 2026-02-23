@@ -91,13 +91,18 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("where.refreshProgress", () => store.notifyChanged()),
     vscode.commands.registerCommand("where.initializeSourceFile", async () => {
       const source = await store.ensureSourceTemplate();
-      const agents = await store.ensureAgentsInstructionFile();
+      const shouldCreateAgents = store.shouldCreateAgentsOnInit();
+      const agents = shouldCreateAgents ? await store.ensureAgentsInstructionFile() : undefined;
       const uri = vscode.Uri.file(source.filePath);
       const doc = await vscode.workspace.openTextDocument(uri);
       await vscode.window.showTextDocument(doc, { preview: false });
       const messages: string[] = [];
       messages.push(source.created ? "source file created" : "source file already exists");
-      messages.push(agents.created ? "AGENTS.md created" : "AGENTS.md already exists");
+      if (shouldCreateAgents && agents) {
+        messages.push(agents.created ? "AGENTS.md created" : "AGENTS.md already exists");
+      } else {
+        messages.push("AGENTS.md skipped by config");
+      }
       vscode.window.showInformationMessage(`Initialization complete: ${messages.join(", ")}.`);
     }),
     vscode.commands.registerCommand("where.openSourceFile", async () => {

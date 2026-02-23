@@ -121,6 +121,16 @@
           "type": "string",
           "default": ".where-agent-progress.md",
           "description": "Relative path (from workspace root) to the local agent progress source file. Markdown only."
+        },
+        "where.init.createAgents": {
+          "type": "boolean",
+          "default": true,
+          "description": "Create AGENTS.md when running Where: Initialize Source File."
+        },
+        "where.init.agentsTemplatePath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional workspace-relative AGENTS.md template path used during initialization."
         }
       }
     }

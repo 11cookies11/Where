@@ -5,6 +5,8 @@ export interface Task {
   title: string;
   status: TaskStatus;
   updatedAt: string;
+  sourceLine: number;
+  indent: number;
   children: Task[];
 }
 
@@ -25,7 +27,8 @@ export function parseMarkdownPlanText(
   const stack: Array<{ indent: number; task: Task }> = [];
   let counter = 0;
 
-  for (const line of lines) {
+  for (let lineNo = 0; lineNo < lines.length; lineNo += 1) {
+    const line = lines[lineNo];
     const titleMatch = line.match(/^#\s*(?:Plan:)?\s*(.+)\s*$/i);
     if (titleMatch && titleMatch[1].trim()) {
       title = titleMatch[1].trim();
@@ -33,12 +36,12 @@ export function parseMarkdownPlanText(
     }
 
     const taskMatch = line.match(
-      /^(\s*)[-*]\s+\[(x|~|!|\s|todo|in_progress|blocked|done)\]\s+(.+)$/i
+      /^([ \t]*)[-*]\s+\[(x|~|!|\s|todo|in_progress|blocked|done)\]\s+(.+)$/i
     );
     if (!taskMatch) {
       continue;
     }
-    const indent = taskMatch[1].length;
+    const indent = measureIndent(taskMatch[1]);
     const marker = taskMatch[2].trim().toLowerCase();
     const taskTitle = taskMatch[3].trim();
     if (!taskTitle) {
@@ -50,6 +53,8 @@ export function parseMarkdownPlanText(
       title: taskTitle,
       status: normalizeTaskStatus(marker),
       updatedAt,
+      sourceLine: lineNo,
+      indent,
       children: []
     };
 
@@ -67,6 +72,15 @@ export function parseMarkdownPlanText(
 
   return { title, updatedAt, tasks };
 }
+
+function measureIndent(rawIndent: string): number {
+  let width = 0;
+  for (const ch of rawIndent) {
+    width += ch === "\t" ? 2 : 1;
+  }
+  return width;
+}
+
 
 export function normalizeTaskStatus(raw: unknown): TaskStatus {
   const value = String(raw ?? "").trim().toLowerCase();

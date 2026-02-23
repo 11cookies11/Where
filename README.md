@@ -43,6 +43,8 @@ Status map:
 Set in VS Code settings:
 
 - `where.sourceFile` (default: `.where-agent-progress.md`)
+- `where.init.createAgents` (default: `true`)
+- `where.init.agentsTemplatePath` (workspace-relative, optional)
 
 Agent write spec:
 

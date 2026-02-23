@@ -69,47 +69,7 @@ export class ProgressStore {
       await fs.access(filePath);
       return { filePath, created: false };
     } catch {
-      const template = [
-        "# AGENTS.md",
-        "",
-        "This file defines repository-specific instructions for coding agents (including Codex).",
-        "",
-        "## Where Progress Contract",
-        "",
-        "- Source file: `where.sourceFile` (default: `.where-agent-progress.md`)",
-        "- Format: **Markdown only** (JSON is not allowed)",
-        "- Encoding: UTF-8",
-        "",
-        "Required structure:",
-        "",
-        "```md",
-        "# Plan: <title>",
-        "- [ ] <task>",
-        "- [~] <task>",
-        "- [!] <task>",
-        "- [x] <task>",
-        "```",
-        "",
-        "Status mapping:",
-        "",
-        "- `[ ]` -> `todo`",
-        "- `[~]` -> `in_progress`",
-        "- `[!]` -> `blocked`",
-        "- `[x]` -> `done`",
-        "",
-        "## Agent Behavior",
-        "",
-        "- Keep one task per line.",
-        "- Update existing tasks when status changes; avoid duplicate tasks.",
-        "- Keep task titles short and actionable.",
-        "- For blocked tasks, include blocker reason in the title.",
-        "- Do not output JSON for progress data.",
-        "- Do not add unrelated long prose in the progress file.",
-        "",
-        "## Reference",
-        "",
-        "- Detailed spec: `docs/AGENT_PROGRESS_SPEC.zh-CN.md`"
-      ].join("\n");
+      const template = await this.loadAgentsTemplate();
       await fs.writeFile(filePath, `${template}\n`, "utf8");
       return { filePath, created: true };
     }
@@ -165,6 +125,79 @@ export class ProgressStore {
     }
     return path.join(folder.uri.fsPath, AGENTS_FILE_NAME);
   }
+
+  public shouldCreateAgentsOnInit(): boolean {
+    const config = vscode.workspace.getConfiguration("where");
+    return config.get<boolean>("init.createAgents", true);
+  }
+
+  private async loadAgentsTemplate(): Promise<string> {
+    const config = vscode.workspace.getConfiguration("where");
+    const templatePath = config.get<string>("init.agentsTemplatePath")?.trim();
+    if (!templatePath) {
+      return defaultAgentsTemplate();
+    }
+
+    const folder = vscode.workspace.workspaceFolders?.[0];
+    if (!folder) {
+      return defaultAgentsTemplate();
+    }
+
+    try {
+      const fullPath = path.join(folder.uri.fsPath, templatePath);
+      const text = await fs.readFile(fullPath, "utf8");
+      if (text.trim()) {
+        return text.trimEnd();
+      }
+      return defaultAgentsTemplate();
+    } catch {
+      return defaultAgentsTemplate();
+    }
+  }
 }
 
 export { PlanData, Task, TaskStatus, parseMarkdownPlanText, statusLabel } from "./progressParser";
+
+function defaultAgentsTemplate(): string {
+  return [
+    "# AGENTS.md",
+    "",
+    "This file defines repository-specific instructions for coding agents (including Codex).",
+    "",
+    "## Where Progress Contract",
+    "",
+    "- Source file: `where.sourceFile` (default: `.where-agent-progress.md`)",
+    "- Format: **Markdown only** (JSON is not allowed)",
+    "- Encoding: UTF-8",
+    "",
+    "Required structure:",
+    "",
+    "```md",
+    "# Plan: <title>",
+    "- [ ] <task>",
+    "- [~] <task>",
+    "- [!] <task>",
+    "- [x] <task>",
+    "```",
+    "",
+    "Status mapping:",
+    "",
+    "- `[ ]` -> `todo`",
+    "- `[~]` -> `in_progress`",
+    "- `[!]` -> `blocked`",
+    "- `[x]` -> `done`",
+    "",
+    "## Agent Behavior",
+    "",
+    "- Keep one task per line.",
+    "- Update existing tasks when status changes; avoid duplicate tasks.",
+    "- Keep task titles short and actionable.",
+    "- For blocked tasks, include blocker reason in the title.",
+    "- Do not output JSON for progress data.",
+    "- Do not add unrelated long prose in the progress file.",
+    "",
+    "## Reference",
+    "",
+    "- Detailed spec: `docs/AGENT_PROGRESS_SPEC.zh-CN.md`"
+  ].join("\n");
+}

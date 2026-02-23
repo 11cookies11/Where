@@ -43,6 +43,8 @@
 在 VS Code 设置中配置：
 
 - `where.sourceFile`（默认 `.where-agent-progress.md`）
+- `where.init.createAgents`（默认 `true`）
+- `where.init.agentsTemplatePath`（工作区相对路径，可选）
 
 Agent 写入规范文档：
 
