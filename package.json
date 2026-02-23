@@ -1,0 +1,247 @@
+{
+  "name": "where-progress",
+  "displayName": "Where Progress",
+  "description": "Visualize agent plan and project progress directly in VS Code.",
+  "version": "0.1.0",
+  "publisher": "11cookies11",
+  "license": "MIT",
+  "keywords": [
+    "progress",
+    "plan",
+    "agent",
+    "markdown",
+    "task"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/11cookies11/Where.git"
+  },
+  "homepage": "https://github.com/11cookies11/Where",
+  "bugs": {
+    "url": "https://github.com/11cookies11/Where/issues"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Visualization"
+  ],
+  "galleryBanner": {
+    "color": "#0E7A7A",
+    "theme": "light"
+  },
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:where.initializeSourceFile",
+    "onCommand:where.openSourceFile",
+    "onCommand:where.writeTaskToSource",
+    "onCommand:where.validateSource",
+    "onCommand:where.openDashboard",
+    "onView:where.projectProgress"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "where.initializeSourceFile",
+        "title": "Where: Initialize Source File"
+      },
+      {
+        "command": "where.openSourceFile",
+        "title": "Where: Open Source File"
+      },
+      {
+        "command": "where.writeTaskToSource",
+        "title": "Where: Write Task To Source"
+      },
+      {
+        "command": "where.cycleTaskStatus",
+        "title": "Where: Cycle Task Status"
+      },
+      {
+        "command": "where.setTaskStatus",
+        "title": "Where: Set Task Status"
+      },
+      {
+        "command": "where.renameTask",
+        "title": "Where: Rename Task"
+      },
+      {
+        "command": "where.deleteTask",
+        "title": "Where: Delete Task"
+      },
+      {
+        "command": "where.promoteTask",
+        "title": "Where: Promote Task (Outdent)"
+      },
+      {
+        "command": "where.demoteTask",
+        "title": "Where: Demote Task (Indent)"
+      },
+      {
+        "command": "where.validateSource",
+        "title": "Where: Validate Source File"
+      },
+      {
+        "command": "where.openDashboard",
+        "title": "Where: Open Progress Dashboard"
+      },
+      {
+        "command": "where.refreshProgress",
+        "title": "Where: Refresh Progress"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "where",
+          "title": "Where",
+          "icon": "media/where.svg"
+        }
+      ]
+    },
+    "views": {
+      "where": [
+        {
+          "id": "where.projectProgress",
+          "name": "Project Progress"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "where.initializeSourceFile",
+          "when": "view == where.projectProgress",
+          "group": "navigation@1"
+        },
+        {
+          "command": "where.openSourceFile",
+          "when": "view == where.projectProgress",
+          "group": "navigation@2"
+        },
+        {
+          "command": "where.openDashboard",
+          "when": "view == where.projectProgress",
+          "group": "navigation@3"
+        },
+        {
+          "command": "where.refreshProgress",
+          "when": "view == where.projectProgress",
+          "group": "navigation@4"
+        },
+        {
+          "command": "where.writeTaskToSource",
+          "when": "view == where.projectProgress",
+          "group": "navigation@5"
+        },
+        {
+          "command": "where.validateSource",
+          "when": "view == where.projectProgress",
+          "group": "navigation@6"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "where.cycleTaskStatus",
+          "when": "view == where.projectProgress && viewItem == where.task",
+          "group": "inline@1"
+        },
+        {
+          "command": "where.setTaskStatus",
+          "when": "view == where.projectProgress && viewItem == where.task",
+          "group": "inline@2"
+        },
+        {
+          "command": "where.renameTask",
+          "when": "view == where.projectProgress && viewItem == where.task",
+          "group": "navigation@1"
+        },
+        {
+          "command": "where.demoteTask",
+          "when": "view == where.projectProgress && viewItem == where.task",
+          "group": "navigation@2"
+        },
+        {
+          "command": "where.promoteTask",
+          "when": "view == where.projectProgress && viewItem == where.task",
+          "group": "navigation@3"
+        },
+        {
+          "command": "where.deleteTask",
+          "when": "view == where.projectProgress && viewItem == where.task",
+          "group": "navigation@4"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "where.initializeSourceFile",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "where.openSourceFile",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "where.openDashboard",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "where.writeTaskToSource",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "where.validateSource",
+          "when": "workspaceFolderCount > 0"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Where Progress",
+      "properties": {
+        "where.sourceFile": {
+          "type": "string",
+          "default": ".where-agent-progress.md",
+          "description": "Relative path (from workspace root) to the local agent progress source file. Markdown only."
+        },
+        "where.init.createAgents": {
+          "type": "boolean",
+          "default": true,
+          "description": "Create AGENTS.md when running Where: Initialize Source File."
+        },
+        "where.init.agentsTemplatePath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional workspace-relative AGENTS.md template path used during initialization."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "clean": "rimraf out .vscode-test",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "preview": "powershell -ExecutionPolicy Bypass -File ./scripts/preview.ps1",
+    "preview:fast": "powershell -ExecutionPolicy Bypass -File ./scripts/preview.ps1 -SkipInstall",
+    "pretest:unit": "npm run compile",
+    "test:unit": "mocha --ui tdd out/test/unit/**/*.js",
+    "pretest:integration": "npm run compile",
+    "test:integration": "node ./scripts/run-integration-test.js",
+    "test:all": "npm run test:unit && npm run test:integration",
+    "test": "npm run test:unit",
+    "release:check": "npm run test && npm run package:vsix",
+    "package:vsix": "vsce package",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.12.12",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.6.2",
+    "mocha": "^10.8.2",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.4.5"
+  }
+}

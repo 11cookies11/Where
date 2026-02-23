@@ -1,32 +1,101 @@
-# <PROJECT_NAME>
+﻿# Where Progress（VS Code 扩展）
 
-<SHORT_DESCRIPTION>
+把本地 LLM agent 输出的 Markdown 进度文档，实时可视化到 VS Code。
 
 语言：简体中文 | [English](README.md)
 
-## 这是什么
+## 解决的问题
 
-这是一个“无技术栈绑定”的 GitHub 模板仓库，用来快速开始任何类型的项目（库 / 服务 / 脚本 / 文档 / 学习记录等）。
+代理聊天信息很丰富，但项目进度不直观。这个扩展把“本地进度 Markdown 文档”直接展示为看板：
 
-首次使用时，通常需要替换以下占位符：
+- Activity Bar 侧边栏任务列表（`Where`）
+- Dashboard 完成率与状态统计
+- 文档变更自动刷新
+- 只读展示，以本地 agent 写入为唯一来源
 
-- `<PROJECT_NAME>`：项目名称
-- `<SHORT_DESCRIPTION>`：一句话简介
-- `LICENSE`：选择合适的许可证
-- `.github/ISSUE_TEMPLATE/*`：按需调整 Issue 模板
+## 文档驱动模式（仅 Markdown）
 
-## 如何使用（作为模板）
+扩展读取一个工作区内的源文件（默认：`.where-agent-progress.md`）。
+你本地的 LLM agent 更新这个文件后，扩展会自动刷新。
 
-1. 在 GitHub 上点击 **Use this template** 创建新仓库
-2. 修改 `README.md` 与基础信息文件（如 `LICENSE`、`CONTRIBUTING.md`）
-3. 添加你的代码 / 文档
+要求格式：
 
-## 仓库约定（建议）
+```md
+# Plan: VS Code Plugin Progress
+- [ ] 定义里程碑
+  - [x] 输出里程碑清单
+  - [~] 评审里程碑负责人
+- [~] 实现解析器
+- [!] 等待外部依赖
+- [x] 发布 MVP
+```
 
-- 变更记录：`CHANGELOG.md`（Keep a Changelog 风格）
-- 提交信息与 PR 标题：Conventional Commits（例如 `feat:`、`fix:`、`chore:`）
-- 社区文档：`CONTRIBUTING.md`、`SECURITY.md`、`CODE_OF_CONDUCT.md`
-- Issue / PR 模板：`.github/`
+支持通过缩进表示子任务层级（建议每级 2 个空格）。
+
+状态映射：
+- `[ ]`=`todo`
+- `[~]`=`in_progress`
+- `[!]`=`blocked`
+- `[x]`=`done`
+
+## 配置源文件
+
+在 VS Code 设置中配置：
+
+- `where.sourceFile`（默认 `.where-agent-progress.md`）
+- `where.init.createAgents`（默认 `true`）
+- `where.init.agentsTemplatePath`（工作区相对路径，可选）
+
+Agent 写入规范文档：
+
+- `docs/AGENT_PROGRESS_SPEC.zh-CN.md`
+
+## 快速开始
+
+1. 安装依赖：
+```bash
+npm install
+```
+2. 编译：
+```bash
+npm run compile
+```
+3. 按 `F5` 启动 Extension Development Host。
+4. 执行一次 `Where: Initialize Source File`（若缺失会同时创建 `.where-agent-progress.md` 和 `AGENTS.md`）。
+5. 让本地 agent 持续更新源文件即可。
+
+一键编译并预览：
+
+```bash
+npm run preview
+```
+
+跳过安装（更快）：
+
+```bash
+npm run preview:fast
+```
+
+## 命令
+
+- `Where: Initialize Source File`
+- `Where: Open Source File`
+- `Where: Write Task To Source`
+- `Where: Cycle Task Status`
+- `Where: Set Task Status`
+- `Where: Rename Task`
+- `Where: Delete Task`
+- `Where: Promote Task (Outdent)`
+- `Where: Demote Task (Indent)`
+- `Where: Validate Source File`
+- `Where: Open Progress Dashboard`
+- `Where: Refresh Progress`
+
+## 测试
+
+- `npm test`：运行完整单元测试（解析、层级、状态映射）
+- `npm run test:integration`：运行 VS Code 扩展宿主集成测试（Windows 默认跳过，可设 `FORCE_INTEGRATION_TESTS=1` 强制执行）
+- `npm run test:all`：运行单元 + 集成测试
 
 ## 许可证
 
