@@ -129,6 +129,8 @@
     "clean": "rimraf out .vscode-test",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
+    "preview": "powershell -ExecutionPolicy Bypass -File ./scripts/preview.ps1",
+    "preview:fast": "powershell -ExecutionPolicy Bypass -File ./scripts/preview.ps1 -SkipInstall",
     "pretest": "npm run compile",
     "test": "node ./out/test/runTest.js",
     "package:vsix": "vsce package",

@@ -9,6 +9,7 @@ export interface Task {
   title: string;
   status: TaskStatus;
   updatedAt: string;
+  children: Task[];
 }
 
 export interface PlanData {
@@ -18,6 +19,7 @@ export interface PlanData {
 }
 
 const DEFAULT_SOURCE_FILE = ".where-agent-progress.md";
+const AGENTS_FILE_NAME = "AGENTS.md";
 const DEFAULT_TITLE = "Agent Plan";
 
 export class ProgressStore {
@@ -44,14 +46,14 @@ export class ProgressStore {
     }
   }
 
-  public async ensureSourceTemplate(): Promise<string> {
+  public async ensureSourceTemplate(): Promise<{ filePath: string; created: boolean }> {
     const filePath = this.resolveSourceFilePath();
     if (!filePath) {
       throw new Error("Open a workspace folder first.");
     }
     try {
       await fs.access(filePath);
-      return filePath;
+      return { filePath, created: false };
     } catch {
       const template = [
         "# Plan: Where Plugin Progress",
@@ -63,7 +65,63 @@ export class ProgressStore {
       ].join("\n");
       await fs.writeFile(filePath, `${template}\n`, "utf8");
       this.notifyChanged();
-      return filePath;
+      return { filePath, created: true };
+    }
+  }
+
+  public async ensureAgentsInstructionFile(): Promise<{ filePath: string; created: boolean }> {
+    const filePath = this.resolveAgentsFilePath();
+    if (!filePath) {
+      throw new Error("Open a workspace folder first.");
+    }
+
+    try {
+      await fs.access(filePath);
+      return { filePath, created: false };
+    } catch {
+      const template = [
+        "# AGENTS.md",
+        "",
+        "This file defines repository-specific instructions for coding agents (including Codex).",
+        "",
+        "## Where Progress Contract",
+        "",
+        "- Source file: `where.sourceFile` (default: `.where-agent-progress.md`)",
+        "- Format: **Markdown only** (JSON is not allowed)",
+        "- Encoding: UTF-8",
+        "",
+        "Required structure:",
+        "",
+        "```md",
+        "# Plan: <title>",
+        "- [ ] <task>",
+        "- [~] <task>",
+        "- [!] <task>",
+        "- [x] <task>",
+        "```",
+        "",
+        "Status mapping:",
+        "",
+        "- `[ ]` -> `todo`",
+        "- `[~]` -> `in_progress`",
+        "- `[!]` -> `blocked`",
+        "- `[x]` -> `done`",
+        "",
+        "## Agent Behavior",
+        "",
+        "- Keep one task per line.",
+        "- Update existing tasks when status changes; avoid duplicate tasks.",
+        "- Keep task titles short and actionable.",
+        "- For blocked tasks, include blocker reason in the title.",
+        "- Do not output JSON for progress data.",
+        "- Do not add unrelated long prose in the progress file.",
+        "",
+        "## Reference",
+        "",
+        "- Detailed spec: `docs/AGENT_PROGRESS_SPEC.zh-CN.md`"
+      ].join("\n");
+      await fs.writeFile(filePath, `${template}\n`, "utf8");
+      return { filePath, created: true };
     }
   }
 
@@ -100,6 +158,8 @@ export class ProgressStore {
     const lines = text.split(/\r?\n/);
     let title = DEFAULT_TITLE;
     const tasks: Task[] = [];
+    const stack: Array<{ indent: number; task: Task }> = [];
+    let counter = 0;
 
     for (const line of lines) {
       const titleMatch = line.match(/^#\s*(?:Plan:)?\s*(.+)\s*$/i);
@@ -109,22 +169,36 @@ export class ProgressStore {
       }
 
       const taskMatch = line.match(
-        /^[-*]\s+\[(x|~|!|\s|todo|in_progress|blocked|done)\]\s+(.+)$/i
+        /^(\s*)[-*]\s+\[(x|~|!|\s|todo|in_progress|blocked|done)\]\s+(.+)$/i
       );
       if (!taskMatch) {
         continue;
       }
-      const marker = taskMatch[1].trim().toLowerCase();
-      const taskTitle = taskMatch[2].trim();
+      const indent = taskMatch[1].length;
+      const marker = taskMatch[2].trim().toLowerCase();
+      const taskTitle = taskMatch[3].trim();
       if (!taskTitle) {
         continue;
       }
-      tasks.push({
-        id: `task-${tasks.length + 1}`,
+      counter += 1;
+      const task: Task = {
+        id: `task-${counter}`,
         title: taskTitle,
         status: normalizeStatus(marker),
-        updatedAt
-      });
+        updatedAt,
+        children: []
+      };
+
+      while (stack.length > 0 && indent <= stack[stack.length - 1].indent) {
+        stack.pop();
+      }
+
+      if (stack.length === 0) {
+        tasks.push(task);
+      } else {
+        stack[stack.length - 1].task.children.push(task);
+      }
+      stack.push({ indent, task });
     }
 
     return { title, updatedAt, tasks };
@@ -138,6 +212,14 @@ export class ProgressStore {
     const config = vscode.workspace.getConfiguration("where");
     const configured = config.get<string>("sourceFile")?.trim() || DEFAULT_SOURCE_FILE;
     return path.join(folder.uri.fsPath, configured);
+  }
+
+  private resolveAgentsFilePath(): string | null {
+    const folder = vscode.workspace.workspaceFolders?.[0];
+    if (!folder) {
+      return null;
+    }
+    return path.join(folder.uri.fsPath, AGENTS_FILE_NAME);
   }
 }
 

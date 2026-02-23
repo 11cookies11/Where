@@ -23,10 +23,14 @@
 ```md
 # Plan: VS Code Plugin Progress
 - [ ] 定义里程碑
+  - [x] 输出里程碑清单
+  - [~] 评审里程碑负责人
 - [~] 实现解析器
 - [!] 等待外部依赖
 - [x] 发布 MVP
 ```
+
+支持通过缩进表示子任务层级（建议每级 2 个空格）。
 
 状态映射：
 - `[ ]`=`todo`
@@ -55,8 +59,20 @@ npm install
 npm run compile
 ```
 3. 按 `F5` 启动 Extension Development Host。
-4. 执行一次 `Where: Initialize Source File`。
+4. 执行一次 `Where: Initialize Source File`（若缺失会同时创建 `.where-agent-progress.md` 和 `AGENTS.md`）。
 5. 让本地 agent 持续更新源文件即可。
+
+一键编译并预览：
+
+```bash
+npm run preview
+```
+
+跳过安装（更快）：
+
+```bash
+npm run preview:fast
+```
 
 ## 命令
 

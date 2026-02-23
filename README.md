@@ -23,10 +23,14 @@ Required format:
 ```md
 # Plan: VS Code Plugin Progress
 - [ ] Define milestones
+  - [x] Draft milestone list
+  - [~] Review milestone owners
 - [~] Implement parser
 - [!] Waiting for external dependency
 - [x] Ship MVP
 ```
+
+Nested subtasks are supported by indentation (recommend 2 spaces per level).
 
 Status map:
 - `[ ]` = `todo`
@@ -55,8 +59,20 @@ npm install
 npm run compile
 ```
 3. Press `F5` to start Extension Development Host.
-4. Run `Where: Initialize Source File` once.
+4. Run `Where: Initialize Source File` once (creates both `.where-agent-progress.md` and `AGENTS.md` if missing).
 5. Let your local agent keep updating the source file.
+
+One-click preview:
+
+```bash
+npm run preview
+```
+
+Skip reinstall and preview faster:
+
+```bash
+npm run preview:fast
+```
 
 ## Commands
 
