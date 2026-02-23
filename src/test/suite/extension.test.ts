@@ -7,11 +7,17 @@ suite("Extension Test Suite", () => {
     assert.ok(extension, "Extension not found");
   });
 
-  test("Source initialization command should be registered", async () => {
+  test("Where commands should be registered", async () => {
     const commands = await vscode.commands.getCommands(true);
-    assert.ok(
-      commands.includes("where.initializeSourceFile"),
-      "Command where.initializeSourceFile is not registered"
-    );
+    const required = [
+      "where.initializeSourceFile",
+      "where.openSourceFile",
+      "where.writeTaskToSource",
+      "where.openDashboard",
+      "where.refreshProgress"
+    ];
+    for (const command of required) {
+      assert.ok(commands.includes(command), `Command ${command} is not registered`);
+    }
   });
 });

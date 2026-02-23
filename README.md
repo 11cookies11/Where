@@ -82,6 +82,12 @@ npm run preview:fast
 - `Where: Open Progress Dashboard`
 - `Where: Refresh Progress`
 
+## Testing
+
+- `npm test`: run comprehensive unit tests (parser + hierarchy + status mapping)
+- `npm run test:integration`: run VS Code extension host integration tests
+- `npm run test:all`: run unit + integration tests
+
 ## License
 
 See `LICENSE`.

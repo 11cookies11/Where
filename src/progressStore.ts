@@ -1,22 +1,12 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as vscode from "vscode";
-
-export type TaskStatus = "todo" | "in_progress" | "blocked" | "done";
-
-export interface Task {
-  id: string;
-  title: string;
-  status: TaskStatus;
-  updatedAt: string;
-  children: Task[];
-}
-
-export interface PlanData {
-  title: string;
-  updatedAt: string;
-  tasks: Task[];
-}
+import {
+  PlanData,
+  TaskStatus,
+  markerByStatus,
+  parseMarkdownPlanText
+} from "./progressParser";
 
 const DEFAULT_SOURCE_FILE = ".where-agent-progress.md";
 const AGENTS_FILE_NAME = "AGENTS.md";
@@ -155,53 +145,7 @@ export class ProgressStore {
   }
 
   private parseMarkdownPlan(text: string, updatedAt: string): PlanData {
-    const lines = text.split(/\r?\n/);
-    let title = DEFAULT_TITLE;
-    const tasks: Task[] = [];
-    const stack: Array<{ indent: number; task: Task }> = [];
-    let counter = 0;
-
-    for (const line of lines) {
-      const titleMatch = line.match(/^#\s*(?:Plan:)?\s*(.+)\s*$/i);
-      if (titleMatch && titleMatch[1].trim()) {
-        title = titleMatch[1].trim();
-        continue;
-      }
-
-      const taskMatch = line.match(
-        /^(\s*)[-*]\s+\[(x|~|!|\s|todo|in_progress|blocked|done)\]\s+(.+)$/i
-      );
-      if (!taskMatch) {
-        continue;
-      }
-      const indent = taskMatch[1].length;
-      const marker = taskMatch[2].trim().toLowerCase();
-      const taskTitle = taskMatch[3].trim();
-      if (!taskTitle) {
-        continue;
-      }
-      counter += 1;
-      const task: Task = {
-        id: `task-${counter}`,
-        title: taskTitle,
-        status: normalizeStatus(marker),
-        updatedAt,
-        children: []
-      };
-
-      while (stack.length > 0 && indent <= stack[stack.length - 1].indent) {
-        stack.pop();
-      }
-
-      if (stack.length === 0) {
-        tasks.push(task);
-      } else {
-        stack[stack.length - 1].task.children.push(task);
-      }
-      stack.push({ indent, task });
-    }
-
-    return { title, updatedAt, tasks };
+    return parseMarkdownPlanText(text, updatedAt, DEFAULT_TITLE);
   }
 
   private resolveSourceFilePath(): string | null {
@@ -223,45 +167,4 @@ export class ProgressStore {
   }
 }
 
-export function statusLabel(status: TaskStatus): string {
-  switch (status) {
-    case "todo":
-      return "Todo";
-    case "in_progress":
-      return "In Progress";
-    case "blocked":
-      return "Blocked";
-    case "done":
-      return "Done";
-    default:
-      return status;
-  }
-}
-
-function normalizeStatus(raw: unknown): TaskStatus {
-  const value = String(raw ?? "").trim().toLowerCase();
-  if (value === "x" || value === "done") {
-    return "done";
-  }
-  if (value === "~" || value === "in_progress") {
-    return "in_progress";
-  }
-  if (value === "!" || value === "blocked") {
-    return "blocked";
-  }
-  return "todo";
-}
-
-function markerByStatus(status: TaskStatus): " " | "~" | "!" | "x" {
-  switch (status) {
-    case "done":
-      return "x";
-    case "in_progress":
-      return "~";
-    case "blocked":
-      return "!";
-    case "todo":
-    default:
-      return " ";
-  }
-}
+export { PlanData, Task, TaskStatus, parseMarkdownPlanText, statusLabel } from "./progressParser";

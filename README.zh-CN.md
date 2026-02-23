@@ -82,6 +82,12 @@ npm run preview:fast
 - `Where: Open Progress Dashboard`
 - `Where: Refresh Progress`
 
+## 测试
+
+- `npm test`：运行完整单元测试（解析、层级、状态映射）
+- `npm run test:integration`：运行 VS Code 扩展宿主集成测试
+- `npm run test:all`：运行单元 + 集成测试
+
 ## 许可证
 
 见 `LICENSE`。
