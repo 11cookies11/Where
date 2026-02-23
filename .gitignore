@@ -18,6 +18,7 @@ dist/
 build/
 out/
 node_modules/
+.vscode-test/
 *.vsix
 
 # Extension local data
