@@ -23,4 +23,3 @@ node_modules/
 # Extension local data
 .where-progress.json
 .where-agent-progress.md
-.where-agent-progress.json

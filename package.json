@@ -120,7 +120,7 @@
         "where.sourceFile": {
           "type": "string",
           "default": ".where-agent-progress.md",
-          "description": "Relative path (from workspace root) to the local agent progress source file. Supports Markdown and JSON."
+          "description": "Relative path (from workspace root) to the local agent progress source file. Markdown only."
         }
       }
     }

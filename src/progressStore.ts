@@ -38,10 +38,6 @@ export class ProgressStore {
       const text = await fs.readFile(filePath, "utf8");
       const stat = await fs.stat(filePath);
       const updatedAt = stat.mtime.toISOString();
-      const sourceExt = path.extname(filePath).toLowerCase();
-      if (sourceExt === ".json") {
-        return this.parseJsonPlan(text, updatedAt);
-      }
       return this.parseMarkdownPlan(text, updatedAt);
     } catch {
       return null;
@@ -84,16 +80,10 @@ export class ProgressStore {
     }
 
     const sourceText = await fs.readFile(filePath, "utf8");
-    const sourceExt = path.extname(filePath).toLowerCase();
-    if (sourceExt === ".json") {
-      const next = this.appendTaskToJson(sourceText, title, status);
-      await fs.writeFile(filePath, `${next}\n`, "utf8");
-    } else {
-      const marker = markerByStatus(status);
-      const nextLine = `- [${marker}] ${title.trim()}`;
-      const normalized = sourceText.endsWith("\n") ? sourceText : `${sourceText}\n`;
-      await fs.writeFile(filePath, `${normalized}${nextLine}\n`, "utf8");
-    }
+    const marker = markerByStatus(status);
+    const nextLine = `- [${marker}] ${title.trim()}`;
+    const normalized = sourceText.endsWith("\n") ? sourceText : `${sourceText}\n`;
+    await fs.writeFile(filePath, `${normalized}${nextLine}\n`, "utf8");
 
     this.notifyChanged();
   }
@@ -104,26 +94,6 @@ export class ProgressStore {
       return null;
     }
     return vscode.Uri.file(filePath);
-  }
-
-  private parseJsonPlan(text: string, updatedAt: string): PlanData | null {
-    const parsed = JSON.parse(text) as {
-      title?: unknown;
-      tasks?: Array<{ title?: unknown; status?: unknown }>;
-    };
-    const title = typeof parsed.title === "string" && parsed.title.trim()
-      ? parsed.title.trim()
-      : DEFAULT_TITLE;
-    const tasksRaw = Array.isArray(parsed.tasks) ? parsed.tasks : [];
-    const tasks = tasksRaw
-      .filter((task) => typeof task.title === "string")
-      .map((task, index) => ({
-        id: `task-${index + 1}`,
-        title: String(task.title).trim(),
-        status: normalizeStatus(task.status),
-        updatedAt
-      }));
-    return { title, updatedAt, tasks };
   }
 
   private parseMarkdownPlan(text: string, updatedAt: string): PlanData {
@@ -168,22 +138,6 @@ export class ProgressStore {
     const config = vscode.workspace.getConfiguration("where");
     const configured = config.get<string>("sourceFile")?.trim() || DEFAULT_SOURCE_FILE;
     return path.join(folder.uri.fsPath, configured);
-  }
-
-  private appendTaskToJson(text: string, title: string, status: TaskStatus): string {
-    const parsed = JSON.parse(text) as {
-      title?: unknown;
-      tasks?: Array<{ title?: unknown; status?: unknown }>;
-    };
-    const next = {
-      title:
-        typeof parsed.title === "string" && parsed.title.trim()
-          ? parsed.title.trim()
-          : DEFAULT_TITLE,
-      tasks: Array.isArray(parsed.tasks) ? parsed.tasks : []
-    };
-    next.tasks.push({ title: title.trim(), status });
-    return JSON.stringify(next, null, 2);
   }
 }
 
