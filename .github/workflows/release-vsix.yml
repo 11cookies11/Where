@@ -6,7 +6,7 @@ on:
       - "v*.*.*"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   package:
@@ -19,8 +19,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run release:check
-      - name: Upload VSIX
-        uses: actions/upload-artifact@v4
+      - name: Upload VSIX to release
+        uses: softprops/action-gh-release@v2
         with:
-          name: where-progress-vsix
-          path: "*.vsix"
+          files: "*.vsix"
+          fail_on_unmatched_files: true
