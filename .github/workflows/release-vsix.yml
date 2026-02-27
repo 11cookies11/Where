@@ -18,6 +18,12 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Sync package version from tag
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "Using version: ${VERSION}"
+          npm version "${VERSION}" --no-git-tag-version --allow-same-version
       - run: npm run release:check
       - name: Upload VSIX to release
         uses: softprops/action-gh-release@v2

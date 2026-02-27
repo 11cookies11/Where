@@ -19,6 +19,16 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - name: Sync package version from tag
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="$(node -p "require('./package.json').version")"
+          fi
+          echo "Using version: ${VERSION}"
+          npm version "${VERSION}" --no-git-tag-version --allow-same-version
       - run: npm run compile
       - name: Publish to VS Code Marketplace
         env:
