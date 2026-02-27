@@ -16,11 +16,8 @@ class ProgressItem extends vscode.TreeItem {
 
     if (kind === "task" && task) {
       this.contextValue = "where.task";
-      const summary = summarizeNode(task);
-      const pending = summary.total - summary.done;
-      this.description = `${statusLabel(task.status)} | ${summary.done}/${summary.total} done | ${pending} pending`;
       this.iconPath = iconByStatus(task.status);
-      this.tooltip = `${label}\nStatus: ${statusLabel(task.status)}\nCompleted: ${summary.done}/${summary.total}`;
+      this.tooltip = `${label}\nStatus: ${statusLabel(task.status)}`;
       this.command = {
         command: "where.cycleTaskStatus",
         title: "Where: Cycle Task Status",
@@ -587,12 +584,6 @@ function flattenTasksWithDepth(tasks: Task[], depth = 0): Array<{ task: Task; de
     }
   }
   return list;
-}
-
-function summarizeNode(task: Task): { done: number; total: number } {
-  const all = flattenTasks([task]);
-  const done = all.filter((item) => item.status === "done").length;
-  return { done, total: all.length };
 }
 
 function cycleStatus(status: Task["status"]): Task["status"] {
