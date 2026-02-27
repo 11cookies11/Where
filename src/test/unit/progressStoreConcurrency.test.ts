@@ -1,5 +1,5 @@
 import * as assert from "node:assert";
-import { isSameMtime } from "../../progressStore";
+import { isSameMtime } from "../../fileVersion";
 
 suite("Progress Store Concurrency Unit Tests", () => {
   test("treats near-identical mtime values as same", () => {

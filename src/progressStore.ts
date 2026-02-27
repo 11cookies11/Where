@@ -10,6 +10,7 @@ import {
   markerByStatus,
   parseMarkdownPlanText
 } from "./progressParser";
+import { isSameMtime } from "./fileVersion";
 import {
   deleteTaskInSource,
   moveTaskIndentInSource,
@@ -250,7 +251,6 @@ export {
   parseMarkdownPlanText,
   statusLabel
 } from "./progressParser";
-export { isSameMtime };
 
 function defaultAgentsTemplate(): string {
   return [
@@ -298,8 +298,4 @@ function defaultAgentsTemplate(): string {
 
 function newTaskId(): string {
   return `where-${randomUUID().replace(/-/g, "").slice(0, 12)}`;
-}
-
-function isSameMtime(left: number, right: number): boolean {
-  return Math.abs(left - right) < 0.5;
 }
