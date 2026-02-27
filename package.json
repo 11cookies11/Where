@@ -4,6 +4,7 @@
   "description": "Visualize agent plan and project progress directly in VS Code.",
   "version": "0.1.0",
   "publisher": "11cookies11",
+  "icon": "media/logo/marketplace-icon.png",
   "license": "MIT",
   "keywords": [
     "progress",
