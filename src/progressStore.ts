@@ -96,11 +96,12 @@ export class ProgressStore {
       await this.ensureSourceTemplate();
     }
 
-    const sourceText = await fs.readFile(filePath, "utf8");
-    const marker = markerByStatus(status);
-    const nextLine = `- [${marker}] ${title.trim()} <!-- where:id:${newTaskId()} -->`;
-    const normalized = sourceText.endsWith("\n") ? sourceText : `${sourceText}\n`;
-    await fs.writeFile(filePath, `${normalized}${nextLine}\n`, "utf8");
+    await this.writeSourceWithRetry(filePath, (sourceText) => {
+      const marker = markerByStatus(status);
+      const nextLine = `- [${marker}] ${title.trim()} <!-- where:id:${newTaskId()} -->`;
+      const normalized = sourceText.endsWith("\n") ? sourceText : `${sourceText}\n`;
+      return `${normalized}${nextLine}\n`;
+    });
 
     this.notifyChanged();
   }
@@ -164,9 +165,7 @@ export class ProgressStore {
       await this.ensureSourceTemplate();
     }
 
-    const source = await this.readSourceText();
-    const next = mutator(source);
-    await fs.writeFile(filePath, next, "utf8");
+    await this.writeSourceWithRetry(filePath, mutator);
     this.notifyChanged();
   }
 
@@ -181,6 +180,27 @@ export class ProgressStore {
     } catch {
       await this.ensureSourceTemplate();
       return await fs.readFile(filePath, "utf8");
+    }
+  }
+
+  private async writeSourceWithRetry(
+    filePath: string,
+    mutator: (source: string) => string
+  ): Promise<void> {
+    const maxAttempts = 2;
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      const source = await fs.readFile(filePath, "utf8");
+      const snapshot = await fs.stat(filePath);
+      const next = mutator(source);
+      const current = await fs.stat(filePath);
+      if (!isSameMtime(snapshot.mtimeMs, current.mtimeMs)) {
+        if (attempt < maxAttempts) {
+          continue;
+        }
+        throw new Error("Source file changed during update. Please retry.");
+      }
+      await fs.writeFile(filePath, next, "utf8");
+      return;
     }
   }
 
@@ -230,6 +250,7 @@ export {
   parseMarkdownPlanText,
   statusLabel
 } from "./progressParser";
+export { isSameMtime };
 
 function defaultAgentsTemplate(): string {
   return [
@@ -277,4 +298,8 @@ function defaultAgentsTemplate(): string {
 
 function newTaskId(): string {
   return `where-${randomUUID().replace(/-/g, "").slice(0, 12)}`;
+}
+
+function isSameMtime(left: number, right: number): boolean {
+  return Math.abs(left - right) < 0.5;
 }
