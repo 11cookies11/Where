@@ -49,6 +49,8 @@ Set in VS Code settings:
 Agent write spec:
 
 - `docs/AGENT_PROGRESS_SPEC.zh-CN.md`
+- `AGENTS.md` (repo-level contract that takes precedence over per-agent templates)
+- `prompts/` (prompt adapters for different agents)
 
 ## Quick Start
 

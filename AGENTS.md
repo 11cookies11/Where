@@ -36,6 +36,13 @@ Status mapping:
 - Do not output JSON for progress data.
 - Do not add unrelated long prose in the progress file.
 
+## Multi-Agent Usage
+
+- This contract is provider-agnostic and should work for Codex, Claude, Gemini, Qwen, and similar agents.
+- Keep one shared source of truth: `.where-agent-progress.md`.
+- Agent-specific prompt templates live in `prompts/`.
+- If any prompt conflicts with this file, follow this file first.
+
 ## Reference
 
 - Detailed spec: `docs/AGENT_PROGRESS_SPEC.zh-CN.md`

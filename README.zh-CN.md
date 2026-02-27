@@ -49,6 +49,8 @@
 Agent 写入规范文档：
 
 - `docs/AGENT_PROGRESS_SPEC.zh-CN.md`
+- `AGENTS.md`（仓库内通用协议，优先级高于具体 Agent 模板）
+- `prompts/`（不同 Agent 的提示词适配模板）
 
 ## 快速开始
 
