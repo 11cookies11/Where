@@ -46,4 +46,24 @@ suite("Source Editor Unit Tests", () => {
     const next = moveTaskIndentInSource(source, "task-2", "demote");
     assert.ok(next.includes("  - [ ] B"));
   });
+
+  test("keeps and targets stable id anchor", () => {
+    const source = [
+      "# Plan: Stable",
+      "- [ ] Parent <!-- where:id:where-parent -->",
+      "  - [~] Child A <!-- where:id:where-child-a -->"
+    ].join("\n");
+    const next = setTaskStatusInSource(source, "where-child-a", "done");
+    assert.ok(next.includes("  - [x] Child A <!-- where:id:where-child-a -->"));
+  });
+
+  test("maps legacy task index id after auto-adding anchors", () => {
+    const source = [
+      "# Plan: Legacy",
+      "- [ ] A",
+      "- [ ] B"
+    ].join("\n");
+    const next = renameTaskInSource(source, "task-2", "B renamed");
+    assert.ok(next.includes("- [ ] B renamed <!-- where:id:"));
+  });
 });

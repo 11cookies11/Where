@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Task, TaskStatus, markerByStatus, parseMarkdownPlanText } from "./progressParser";
 
 interface TaskRef {
@@ -8,12 +9,12 @@ interface TaskRef {
 type Direction = "promote" | "demote";
 
 export function setTaskStatusInSource(source: string, taskId: string, status: TaskStatus): string {
-  return updateTaskLine(source, taskId, (line, task) => {
+  return updateTaskLine(source, taskId, (line) => {
     const parsed = parseTaskLine(line);
     if (!parsed) {
       return line;
     }
-    return `${parsed.prefix}[${markerByStatus(status)}] ${task.title}`;
+    return buildTaskLine(parsed.prefix, markerByStatus(status), parsed.title, parsed.id);
   });
 }
 
@@ -27,15 +28,17 @@ export function renameTaskInSource(source: string, taskId: string, title: string
     if (!parsed) {
       return line;
     }
-    return `${parsed.prefix}[${parsed.marker}] ${nextTitle}`;
+    return buildTaskLine(parsed.prefix, parsed.marker, nextTitle, parsed.id);
   });
 }
 
 export function deleteTaskInSource(source: string, taskId: string): string {
-  const lines = splitLines(source);
-  const plan = parseMarkdownPlanText(source, new Date().toISOString());
+  const withIds = ensureTaskIdsInSource(source);
+  const lines = splitLines(withIds);
+  const plan = parseMarkdownPlanText(withIds, new Date().toISOString());
+  const resolvedTaskId = resolveTaskId(taskId, plan.tasks);
   const refs = flattenWithParents(plan.tasks);
-  const targetRef = refs.find((ref) => ref.task.id === taskId);
+  const targetRef = refs.find((ref) => ref.task.id === resolvedTaskId);
   if (!targetRef) {
     throw new Error("Task not found.");
   }
@@ -50,10 +53,12 @@ export function moveTaskIndentInSource(
   taskId: string,
   direction: Direction
 ): string {
-  const lines = splitLines(source);
-  const plan = parseMarkdownPlanText(source, new Date().toISOString());
+  const withIds = ensureTaskIdsInSource(source);
+  const lines = splitLines(withIds);
+  const plan = parseMarkdownPlanText(withIds, new Date().toISOString());
+  const resolvedTaskId = resolveTaskId(taskId, plan.tasks);
   const refs = flattenWithParents(plan.tasks);
-  const targetRef = refs.find((ref) => ref.task.id === taskId);
+  const targetRef = refs.find((ref) => ref.task.id === resolvedTaskId);
   if (!targetRef) {
     throw new Error("Task not found.");
   }
@@ -87,17 +92,19 @@ export function moveTaskIndentInSource(
 function updateTaskLine(
   source: string,
   taskId: string,
-  updater: (line: string, task: Task) => string
+  updater: (line: string) => string
 ): string {
-  const lines = splitLines(source);
-  const plan = parseMarkdownPlanText(source, new Date().toISOString());
+  const withIds = ensureTaskIdsInSource(source);
+  const lines = splitLines(withIds);
+  const plan = parseMarkdownPlanText(withIds, new Date().toISOString());
+  const resolvedTaskId = resolveTaskId(taskId, plan.tasks);
   const refs = flattenWithParents(plan.tasks);
-  const targetRef = refs.find((ref) => ref.task.id === taskId);
+  const targetRef = refs.find((ref) => ref.task.id === resolvedTaskId);
   if (!targetRef) {
     throw new Error("Task not found.");
   }
   const lineNo = targetRef.task.sourceLine;
-  lines[lineNo] = updater(lines[lineNo], targetRef.task);
+  lines[lineNo] = updater(lines[lineNo]);
   return normalizeLines(lines);
 }
 
@@ -110,12 +117,24 @@ function normalizeLines(lines: string[]): string {
   return `${text}\n`;
 }
 
-function parseTaskLine(line: string): { prefix: string; marker: string } | null {
-  const match = line.match(/^([ \t]*[-*]\s+)\[(x|~|!|\s|todo|in_progress|blocked|done)\]\s+.*$/i);
+function parseTaskLine(line: string): { prefix: string; marker: string; title: string; id?: string } | null {
+  const match = line.match(
+    /^([ \t]*[-*]\s+)\[(x|~|!|\s|todo|in_progress|blocked|done)\]\s+(.+?)\s*(?:<!--\s*where:id:([a-z0-9_-]+)\s*-->)?\s*$/i
+  );
   if (!match) {
     return null;
   }
-  return { prefix: match[1], marker: match[2] };
+  return {
+    prefix: match[1],
+    marker: match[2],
+    title: match[3].trim(),
+    id: match[4]?.trim()
+  };
+}
+
+function buildTaskLine(prefix: string, marker: string, title: string, id?: string): string {
+  const anchor = id ? ` <!-- where:id:${id} -->` : "";
+  return `${prefix}[${marker}] ${title.trim()}${anchor}`;
 }
 
 function flattenWithParents(tasks: Task[], parent: Task | null = null): TaskRef[] {
@@ -174,4 +193,51 @@ function outdentLine(line: string, count: number): string {
     removed += 1;
   }
   return next;
+}
+
+function flattenTasks(tasks: Task[]): Task[] {
+  const list: Task[] = [];
+  const walk = (nodes: Task[]): void => {
+    for (const node of nodes) {
+      list.push(node);
+      if (node.children.length > 0) {
+        walk(node.children);
+      }
+    }
+  };
+  walk(tasks);
+  return list;
+}
+
+function resolveTaskId(taskId: string, tasks: Task[]): string {
+  const flat = flattenTasks(tasks);
+  if (flat.some((task) => task.id === taskId)) {
+    return taskId;
+  }
+  const legacy = taskId.match(/^task-(\d+)$/i);
+  if (legacy) {
+    const index = Number(legacy[1]) - 1;
+    if (index >= 0 && index < flat.length) {
+      return flat[index].id;
+    }
+  }
+  return taskId;
+}
+
+function ensureTaskIdsInSource(source: string): string {
+  const lines = splitLines(source);
+  let touched = false;
+  for (let i = 0; i < lines.length; i += 1) {
+    const parsed = parseTaskLine(lines[i]);
+    if (!parsed || parsed.id) {
+      continue;
+    }
+    lines[i] = buildTaskLine(parsed.prefix, parsed.marker, parsed.title, newTaskId());
+    touched = true;
+  }
+  return touched ? normalizeLines(lines) : source;
+}
+
+function newTaskId(): string {
+  return `where-${randomUUID().replace(/-/g, "").slice(0, 12)}`;
 }

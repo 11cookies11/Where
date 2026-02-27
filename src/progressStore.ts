@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as vscode from "vscode";
@@ -97,7 +98,7 @@ export class ProgressStore {
 
     const sourceText = await fs.readFile(filePath, "utf8");
     const marker = markerByStatus(status);
-    const nextLine = `- [${marker}] ${title.trim()}`;
+    const nextLine = `- [${marker}] ${title.trim()} <!-- where:id:${newTaskId()} -->`;
     const normalized = sourceText.endsWith("\n") ? sourceText : `${sourceText}\n`;
     await fs.writeFile(filePath, `${normalized}${nextLine}\n`, "utf8");
 
@@ -272,4 +273,8 @@ function defaultAgentsTemplate(): string {
     "",
     "- Detailed spec: `docs/AGENT_PROGRESS_SPEC.zh-CN.md`"
   ].join("\n");
+}
+
+function newTaskId(): string {
+  return `where-${randomUUID().replace(/-/g, "").slice(0, 12)}`;
 }

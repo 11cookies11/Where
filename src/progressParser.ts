@@ -49,13 +49,13 @@ export function parseMarkdownPlanText(
     }
     const indent = measureIndent(taskMatch[1]);
     const marker = taskMatch[2].trim().toLowerCase();
-    const taskTitle = taskMatch[3].trim();
+    const { title: taskTitle, id: stableId } = splitTaskTitleAndId(taskMatch[3]);
     if (!taskTitle) {
       continue;
     }
     counter += 1;
     const task: Task = {
-      id: `task-${counter}`,
+      id: stableId ?? `task-${counter}`,
       title: taskTitle,
       status: normalizeTaskStatus(marker),
       updatedAt,
@@ -95,7 +95,7 @@ export function analyzeMarkdownPlanText(text: string): ParseWarning[] {
       const rawIndent = rawTask[1];
       const markerRaw = rawTask[2].toLowerCase();
       const marker = markerRaw.trim();
-      const title = rawTask[3].trim();
+      const { title } = splitTaskTitleAndId(rawTask[3]);
 
       if (rawIndent.includes("\t")) {
         warnings.push({
@@ -148,6 +148,17 @@ export function analyzeMarkdownPlanText(text: string): ParseWarning[] {
   }
 
   return warnings;
+}
+
+function splitTaskTitleAndId(raw: string): { title: string; id?: string } {
+  const trimmed = raw.trim();
+  const match = trimmed.match(/^(.*?)\s*<!--\s*where:id:([a-z0-9_-]+)\s*-->\s*$/i);
+  if (!match) {
+    return { title: trimmed };
+  }
+  const title = match[1].trim();
+  const id = match[2].trim();
+  return id ? { title, id } : { title };
 }
 
 function measureIndent(rawIndent: string): number {

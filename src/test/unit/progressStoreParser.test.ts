@@ -53,6 +53,18 @@ suite("Progress Parser Unit Tests", () => {
     );
   });
 
+  test("uses stable id from where anchor", () => {
+    const source = [
+      "# Plan: Stable ID",
+      "- [ ] Task A <!-- where:id:where-a1 -->",
+      "- [x] Task B <!-- where:id:where-b2 -->"
+    ].join("\n");
+
+    const plan = parseMarkdownPlanText(source, updatedAt);
+    assert.strictEqual(plan.tasks[0].id, "where-a1");
+    assert.strictEqual(plan.tasks[1].id, "where-b2");
+  });
+
   test("ignores malformed task lines", () => {
     const source = [
       "# Plan: Invalid Lines",
