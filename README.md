@@ -2,7 +2,16 @@
 
 Visualize project progress from a local LLM agent Markdown document.
 
-Language: English | [简体中文](README.zh-CN.md)
+[![CI Tests](https://github.com/11cookies11/Where/actions/workflows/ci-tests.yml/badge.svg?branch=main)](https://github.com/11cookies11/Where/actions/workflows/ci-tests.yml)
+[![Release VSIX](https://github.com/11cookies11/Where/actions/workflows/release-vsix.yml/badge.svg)](https://github.com/11cookies11/Where/actions/workflows/release-vsix.yml)
+[![Publish Marketplace](https://github.com/11cookies11/Where/actions/workflows/publish-marketplace.yml/badge.svg)](https://github.com/11cookies11/Where/actions/workflows/publish-marketplace.yml)
+
+## Language Mode
+
+This project ships with bilingual docs:
+
+- English: `README.md` (current file)
+- Simplified Chinese: [README.zh-CN.md](README.zh-CN.md)
 
 ## What It Solves
 

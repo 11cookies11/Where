@@ -26,8 +26,26 @@
 
 1. Package VSIX:
    - `npm run package:vsix`
-2. Publish (after creating/pairing publisher credentials):
-   - `npx vsce publish`
+2. Publish to Marketplace (after creating/pairing publisher credentials):
+   - Direct publish (recommended): `npx @vscode/vsce publish`
+   - Manual upload: `npx @vscode/vsce package` then upload `.vsix` in Marketplace Publisher portal
+
+## Marketplace Credentials
+
+1. Create Publisher:
+   - `https://marketplace.visualstudio.com/manage`
+2. Create PAT in Azure DevOps with Marketplace publish/manage scope:
+   - `https://dev.azure.com`
+3. Local publish:
+   - `npx @vscode/vsce login <publisher-id>`
+   - `npx @vscode/vsce publish`
+
+## GitHub Action Auto Publish
+
+- Workflow: `.github/workflows/publish-marketplace.yml`
+- Trigger: tag push `v*.*.*` (and manual dispatch)
+- Required secret:
+  - `VSCE_PAT`
 
 ## CI
 

@@ -2,7 +2,16 @@
 
 把本地 LLM agent 输出的 Markdown 进度文档，实时可视化到 VS Code。
 
-语言：简体中文 | [English](README.md)
+[![CI Tests](https://github.com/11cookies11/Where/actions/workflows/ci-tests.yml/badge.svg?branch=main)](https://github.com/11cookies11/Where/actions/workflows/ci-tests.yml)
+[![Release VSIX](https://github.com/11cookies11/Where/actions/workflows/release-vsix.yml/badge.svg)](https://github.com/11cookies11/Where/actions/workflows/release-vsix.yml)
+[![Publish Marketplace](https://github.com/11cookies11/Where/actions/workflows/publish-marketplace.yml/badge.svg)](https://github.com/11cookies11/Where/actions/workflows/publish-marketplace.yml)
+
+## 语言模式
+
+本项目提供双语文档：
+
+- 简体中文：`README.zh-CN.md`（当前文件）
+- English: [README.md](README.md)
 
 ## 解决的问题
 
