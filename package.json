@@ -116,38 +116,6 @@
       ]
     },
     "menus": {
-      "view/title": [
-        {
-          "command": "where.initializeSourceFile",
-          "when": "view == where.projectProgress",
-          "group": "navigation@1"
-        },
-        {
-          "command": "where.openSourceFile",
-          "when": "view == where.projectProgress",
-          "group": "navigation@2"
-        },
-        {
-          "command": "where.openDashboard",
-          "when": "view == where.projectProgress",
-          "group": "navigation@3"
-        },
-        {
-          "command": "where.refreshProgress",
-          "when": "view == where.projectProgress",
-          "group": "navigation@4"
-        },
-        {
-          "command": "where.writeTaskToSource",
-          "when": "view == where.projectProgress",
-          "group": "navigation@5"
-        },
-        {
-          "command": "where.validateSource",
-          "when": "view == where.projectProgress",
-          "group": "navigation@6"
-        }
-      ],
       "view/item/context": [
         {
           "command": "where.cycleTaskStatus",
