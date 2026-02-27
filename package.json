@@ -34,6 +34,7 @@
   "activationEvents": [
     "onStartupFinished",
     "onCommand:where.initializeSourceFile",
+    "onCommand:where.initSourceFile",
     "onCommand:where.openSourceFile",
     "onCommand:where.writeTaskToSource",
     "onCommand:where.validateSource",
@@ -46,6 +47,10 @@
       {
         "command": "where.initializeSourceFile",
         "title": "Where: Initialize Source File"
+      },
+      {
+        "command": "where.initSourceFile",
+        "title": "Where: Init Source File"
       },
       {
         "command": "where.openSourceFile",
@@ -177,6 +182,10 @@
       "commandPalette": [
         {
           "command": "where.initializeSourceFile",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "where.initSourceFile",
           "when": "workspaceFolderCount > 0"
         },
         {

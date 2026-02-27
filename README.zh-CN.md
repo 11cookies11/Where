@@ -63,7 +63,7 @@ npm install
 npm run compile
 ```
 3. 按 `F5` 启动 Extension Development Host。
-4. 执行一次 `Where: Initialize Source File`（若缺失会同时创建 `.where-agent-progress.md` 和 `AGENTS.md`）。
+4. 执行一次 `Where: Initialize Source File`（或 `Where: Init Source File`）（若缺失会同时创建 `.where-agent-progress.md` 和 `AGENTS.md`）。
 5. 让本地 agent 持续更新源文件即可。
 
 一键编译并预览：
@@ -81,6 +81,7 @@ npm run preview:fast
 ## 命令
 
 - `Where: Initialize Source File`
+- `Where: Init Source File`（别名）
 - `Where: Open Source File`
 - `Where: Write Task To Source`
 - `Where: Cycle Task Status`

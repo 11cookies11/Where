@@ -11,6 +11,7 @@ suite("Extension Test Suite", () => {
     const commands = await vscode.commands.getCommands(true);
     const required = [
       "where.initializeSourceFile",
+      "where.initSourceFile",
       "where.openSourceFile",
       "where.writeTaskToSource",
       "where.cycleTaskStatus",

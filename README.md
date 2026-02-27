@@ -63,7 +63,7 @@ npm install
 npm run compile
 ```
 3. Press `F5` to start Extension Development Host.
-4. Run `Where: Initialize Source File` once (creates both `.where-agent-progress.md` and `AGENTS.md` if missing).
+4. Run `Where: Initialize Source File` (or `Where: Init Source File`) once (creates both `.where-agent-progress.md` and `AGENTS.md` if missing).
 5. Let your local agent keep updating the source file.
 
 One-click preview:
@@ -81,6 +81,7 @@ npm run preview:fast
 ## Commands
 
 - `Where: Initialize Source File`
+- `Where: Init Source File` (alias)
 - `Where: Open Source File`
 - `Where: Write Task To Source`
 - `Where: Cycle Task Status`

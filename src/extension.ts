@@ -91,6 +91,23 @@ export function activate(context: vscode.ExtensionContext): void {
   };
   setupWatcher();
 
+  const runInitializeSourceFile = async (): Promise<void> => {
+    const source = await store.ensureSourceTemplate();
+    const shouldCreateAgents = store.shouldCreateAgentsOnInit();
+    const agents = shouldCreateAgents ? await store.ensureAgentsInstructionFile() : undefined;
+    const uri = vscode.Uri.file(source.filePath);
+    const doc = await vscode.workspace.openTextDocument(uri);
+    await vscode.window.showTextDocument(doc, { preview: false });
+    const messages: string[] = [];
+    messages.push(source.created ? "source file created" : "source file already exists");
+    if (shouldCreateAgents && agents) {
+      messages.push(agents.created ? "AGENTS.md created" : "AGENTS.md already exists");
+    } else {
+      messages.push("AGENTS.md skipped by config");
+    }
+    vscode.window.showInformationMessage(`Initialization complete: ${messages.join(", ")}.`);
+  };
+
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider("where.projectProgress", provider),
     vscode.commands.registerCommand("where.refreshProgress", () => store.notifyChanged()),
@@ -192,22 +209,8 @@ export function activate(context: vscode.ExtensionContext): void {
       output.show(true);
       vscode.window.showWarningMessage(`Source has ${warnings.length} validation warnings.`);
     }),
-    vscode.commands.registerCommand("where.initializeSourceFile", async () => {
-      const source = await store.ensureSourceTemplate();
-      const shouldCreateAgents = store.shouldCreateAgentsOnInit();
-      const agents = shouldCreateAgents ? await store.ensureAgentsInstructionFile() : undefined;
-      const uri = vscode.Uri.file(source.filePath);
-      const doc = await vscode.workspace.openTextDocument(uri);
-      await vscode.window.showTextDocument(doc, { preview: false });
-      const messages: string[] = [];
-      messages.push(source.created ? "source file created" : "source file already exists");
-      if (shouldCreateAgents && agents) {
-        messages.push(agents.created ? "AGENTS.md created" : "AGENTS.md already exists");
-      } else {
-        messages.push("AGENTS.md skipped by config");
-      }
-      vscode.window.showInformationMessage(`Initialization complete: ${messages.join(", ")}.`);
-    }),
+    vscode.commands.registerCommand("where.initializeSourceFile", runInitializeSourceFile),
+    vscode.commands.registerCommand("where.initSourceFile", runInitializeSourceFile),
     vscode.commands.registerCommand("where.openSourceFile", async () => {
       const uri = store.resolveSourceUri();
       if (!uri) {
@@ -618,4 +621,3 @@ function extractTaskId(taskArg: unknown): string | undefined {
   }
   return undefined;
 }
-
