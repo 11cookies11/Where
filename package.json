@@ -181,28 +181,22 @@
       ],
       "commandPalette": [
         {
-          "command": "where.initializeSourceFile",
-          "when": "workspaceFolderCount > 0"
+          "command": "where.initializeSourceFile"
         },
         {
-          "command": "where.initSourceFile",
-          "when": "workspaceFolderCount > 0"
+          "command": "where.initSourceFile"
         },
         {
-          "command": "where.openSourceFile",
-          "when": "workspaceFolderCount > 0"
+          "command": "where.openSourceFile"
         },
         {
-          "command": "where.openDashboard",
-          "when": "workspaceFolderCount > 0"
+          "command": "where.openDashboard"
         },
         {
-          "command": "where.writeTaskToSource",
-          "when": "workspaceFolderCount > 0"
+          "command": "where.writeTaskToSource"
         },
         {
-          "command": "where.validateSource",
-          "when": "workspaceFolderCount > 0"
+          "command": "where.validateSource"
         }
       ]
     },
