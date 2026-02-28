@@ -1,4 +1,4 @@
-﻿# Where Progress (VS Code Extension)
+﻿# Where (VS Code Extension)
 
 Visualize project progress from a local LLM agent Markdown document.
 
@@ -112,3 +112,4 @@ npm run preview:fast
 ## License
 
 See `LICENSE`.
+

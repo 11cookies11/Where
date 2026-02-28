@@ -1,4 +1,4 @@
-﻿# Where Progress（VS Code 扩展）
+﻿# Where（VS Code 扩展）
 
 把本地 LLM agent 输出的 Markdown 进度文档，实时可视化到 VS Code。
 
@@ -112,3 +112,4 @@ npm run preview:fast
 ## 许可证
 
 见 `LICENSE`。
+

@@ -1,6 +1,6 @@
 {
   "name": "where-progress",
-  "displayName": "Where Progress",
+  "displayName": "Where",
   "description": "Visualize agent plan and project progress directly in VS Code.",
   "version": "0.1.0",
   "publisher": "11cookies11",
@@ -170,7 +170,7 @@
       ]
     },
     "configuration": {
-      "title": "Where Progress",
+      "title": "Where",
       "properties": {
         "where.sourceFile": {
           "type": "string",
