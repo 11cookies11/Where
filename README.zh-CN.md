@@ -20,7 +20,7 @@
 - Activity Bar 侧边栏任务列表（`Where`）
 - Dashboard 完成率与状态统计
 - 文档变更自动刷新
-- 只读展示，以本地 agent 写入为唯一来源
+- 可视化管理当前进度，并支持归档历史计划
 
 ## 文档驱动模式（仅 Markdown）
 
@@ -54,6 +54,7 @@
 - `where.sourceFile`（默认 `.where-agent-progress.md`）
 - `where.init.createAgents`（默认 `true`）
 - `where.init.agentsTemplatePath`（工作区相对路径，可选）
+- `where.historyFile`（默认 `.where-history.json`）
 
 Agent 写入规范文档：
 
@@ -92,6 +93,9 @@ npm run preview:fast
 - `Where: Initialize Source File`
 - `Where: Init Source File`（别名）
 - `Where: Open Source File`
+- `Where: Open Where Settings`
+- `Where: Archive Current Plan`
+- `Where: Query Plan History`
 - `Where: Write Task To Source`
 - `Where: Cycle Task Status`
 - `Where: Set Task Status`

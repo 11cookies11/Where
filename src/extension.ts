@@ -108,6 +108,26 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider("where.projectProgress", provider),
     vscode.commands.registerCommand("where.refreshProgress", () => store.notifyChanged()),
+    vscode.commands.registerCommand("where.openWhereSettings", async () => {
+      const action = await vscode.window.showQuickPick(
+        [
+          { label: "Archive Current Plan", command: "where.archiveCurrentPlan" },
+          { label: "Query Plan History", command: "where.queryPlanHistory" },
+          { label: "Open Source File", command: "where.openSourceFile" },
+          { label: "Write Task To Source", command: "where.writeTaskToSource" },
+          { label: "Open Progress Dashboard", command: "where.openDashboard" },
+          { label: "Validate Source File", command: "where.validateSource" },
+          { label: "Refresh Progress", command: "where.refreshProgress" },
+          { label: "Configure where.sourceFile", command: "workbench.action.openSettings", args: "where.sourceFile" },
+          { label: "Configure where.historyFile", command: "workbench.action.openSettings", args: "where.historyFile" }
+        ],
+        { placeHolder: "Where Settings" }
+      );
+      if (!action) {
+        return;
+      }
+      await vscode.commands.executeCommand(action.command, action.args);
+    }),
     vscode.commands.registerCommand("where.cycleTaskStatus", async (taskArg?: unknown) => {
       const taskId = extractTaskId(taskArg);
       if (!taskId) {
@@ -224,6 +244,75 @@ export function activate(context: vscode.ExtensionContext): void {
         if (pick === "Create Source File") {
           await vscode.commands.executeCommand("where.initializeSourceFile");
         }
+      }
+    }),
+    vscode.commands.registerCommand("where.archiveCurrentPlan", async () => {
+      try {
+        const archived = await store.archiveCurrentPlan();
+        const pick = await vscode.window.showInformationMessage(
+          `Plan archived: ${archived.filePath}`,
+          "Open Archive",
+          "Start New Plan"
+        );
+        if (pick === "Open Archive") {
+          const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(archived.filePath));
+          await vscode.window.showTextDocument(doc, { preview: false });
+          return;
+        }
+        if (pick === "Start New Plan") {
+          const title = await vscode.window.showInputBox({
+            prompt: "New plan title",
+            value: "Agent Plan"
+          });
+          if (!title?.trim()) {
+            return;
+          }
+          await store.resetSourcePlan(title);
+          vscode.window.showInformationMessage("Started a new plan in source file.");
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to archive plan.";
+        vscode.window.showErrorMessage(message);
+      }
+    }),
+    vscode.commands.registerCommand("where.queryPlanHistory", async () => {
+      try {
+        const entries = await store.listArchivedPlans();
+        if (entries.length === 0) {
+          vscode.window.showInformationMessage("No archived plans found.");
+          return;
+        }
+        const pick = await vscode.window.showQuickPick(
+          entries.map((entry) => ({
+            label: entry.title,
+            description: formatArchivedAt(entry.archivedAt),
+            detail: `Source: ${entry.sourceFile}`,
+            entry
+          })),
+          { placeHolder: "Select an archived plan to preview" }
+        );
+        if (!pick) {
+          return;
+        }
+        const preview = [
+          `# Archived Plan Preview: ${pick.entry.title}`,
+          "",
+          `- Archived At: ${pick.entry.archivedAt}`,
+          `- Source: ${pick.entry.sourceFile}`,
+          "",
+          "## Snapshot",
+          "",
+          pick.entry.snapshot,
+          ""
+        ].join("\n");
+        const doc = await vscode.workspace.openTextDocument({
+          language: "markdown",
+          content: preview
+        });
+        await vscode.window.showTextDocument(doc, { preview: false });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to query plan history.";
+        vscode.window.showErrorMessage(message);
       }
     }),
     vscode.commands.registerCommand("where.writeTaskToSource", async () => {
@@ -611,4 +700,12 @@ function extractTaskId(taskArg: unknown): string | undefined {
     }
   }
   return undefined;
+}
+
+function formatArchivedAt(iso: string): string {
+  const time = new Date(iso);
+  if (Number.isNaN(time.getTime())) {
+    return iso;
+  }
+  return time.toLocaleString();
 }
