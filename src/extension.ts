@@ -108,6 +108,26 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider("where.projectProgress", provider),
     vscode.commands.registerCommand("where.refreshProgress", () => store.notifyChanged()),
+    vscode.commands.registerCommand("where.openWhereSettings", async () => {
+      const action = await vscode.window.showQuickPick(
+        [
+          { label: "Archive Current Plan", command: "where.archiveCurrentPlan" },
+          { label: "Query Plan History", command: "where.queryPlanHistory" },
+          { label: "Open Source File", command: "where.openSourceFile" },
+          { label: "Write Task To Source", command: "where.writeTaskToSource" },
+          { label: "Open Progress Dashboard", command: "where.openDashboard" },
+          { label: "Validate Source File", command: "where.validateSource" },
+          { label: "Refresh Progress", command: "where.refreshProgress" },
+          { label: "Configure where.sourceFile", command: "workbench.action.openSettings", args: "where.sourceFile" },
+          { label: "Configure where.historyFile", command: "workbench.action.openSettings", args: "where.historyFile" }
+        ],
+        { placeHolder: "Where Settings" }
+      );
+      if (!action) {
+        return;
+      }
+      await vscode.commands.executeCommand(action.command, action.args);
+    }),
     vscode.commands.registerCommand("where.cycleTaskStatus", async (taskArg?: unknown) => {
       const taskId = extractTaskId(taskArg);
       if (!taskId) {

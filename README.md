@@ -93,6 +93,7 @@ npm run preview:fast
 - `Where: Initialize Source File`
 - `Where: Init Source File` (alias)
 - `Where: Open Source File`
+- `Where: Open Where Settings`
 - `Where: Archive Current Plan`
 - `Where: Query Plan History`
 - `Where: Write Task To Source`

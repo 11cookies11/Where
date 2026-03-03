@@ -37,6 +37,7 @@
     "onCommand:where.initializeSourceFile",
     "onCommand:where.initSourceFile",
     "onCommand:where.openSourceFile",
+    "onCommand:where.openWhereSettings",
     "onCommand:where.archiveCurrentPlan",
     "onCommand:where.queryPlanHistory",
     "onCommand:where.writeTaskToSource",
@@ -58,6 +59,11 @@
       {
         "command": "where.openSourceFile",
         "title": "Where: Open Source File"
+      },
+      {
+        "command": "where.openWhereSettings",
+        "title": "Where: Open Where Settings",
+        "icon": "$(settings-gear)"
       },
       {
         "command": "where.archiveCurrentPlan",
@@ -158,6 +164,13 @@
           "group": "navigation@4"
         }
       ],
+      "view/title": [
+        {
+          "command": "where.openWhereSettings",
+          "when": "view == where.projectProgress",
+          "group": "navigation@1"
+        }
+      ],
       "commandPalette": [
         {
           "command": "where.initializeSourceFile"
@@ -167,6 +180,9 @@
         },
         {
           "command": "where.openSourceFile"
+        },
+        {
+          "command": "where.openWhereSettings"
         },
         {
           "command": "where.archiveCurrentPlan"
