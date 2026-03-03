@@ -20,7 +20,7 @@ Agent chat is rich, but progress is hard to scan. This extension turns your loca
 - Sidebar task list in Activity Bar (`Where`)
 - Dashboard with completion and status distribution
 - Auto-refresh when source file changes
-- Read-only visualization driven by local agent output
+- Visual progress management and plan archiving in workspace
 
 ## Source-Driven Mode (Markdown Only)
 
@@ -54,6 +54,7 @@ Set in VS Code settings:
 - `where.sourceFile` (default: `.where-agent-progress.md`)
 - `where.init.createAgents` (default: `true`)
 - `where.init.agentsTemplatePath` (workspace-relative, optional)
+- `where.historyFile` (default: `.where-history.json`)
 
 Agent write spec:
 
@@ -92,6 +93,8 @@ npm run preview:fast
 - `Where: Initialize Source File`
 - `Where: Init Source File` (alias)
 - `Where: Open Source File`
+- `Where: Archive Current Plan`
+- `Where: Query Plan History`
 - `Where: Write Task To Source`
 - `Where: Cycle Task Status`
 - `Where: Set Task Status`

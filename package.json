@@ -37,6 +37,8 @@
     "onCommand:where.initializeSourceFile",
     "onCommand:where.initSourceFile",
     "onCommand:where.openSourceFile",
+    "onCommand:where.archiveCurrentPlan",
+    "onCommand:where.queryPlanHistory",
     "onCommand:where.writeTaskToSource",
     "onCommand:where.validateSource",
     "onCommand:where.openDashboard",
@@ -56,6 +58,14 @@
       {
         "command": "where.openSourceFile",
         "title": "Where: Open Source File"
+      },
+      {
+        "command": "where.archiveCurrentPlan",
+        "title": "Where: Archive Current Plan"
+      },
+      {
+        "command": "where.queryPlanHistory",
+        "title": "Where: Query Plan History"
       },
       {
         "command": "where.writeTaskToSource",
@@ -159,6 +169,12 @@
           "command": "where.openSourceFile"
         },
         {
+          "command": "where.archiveCurrentPlan"
+        },
+        {
+          "command": "where.queryPlanHistory"
+        },
+        {
           "command": "where.openDashboard"
         },
         {
@@ -186,6 +202,11 @@
           "type": "string",
           "default": "",
           "description": "Optional workspace-relative AGENTS.md template path used during initialization."
+        },
+        "where.historyFile": {
+          "type": "string",
+          "default": ".where-history.json",
+          "description": "Workspace-relative JSON file used to store archived plan snapshots."
         }
       }
     }

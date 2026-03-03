@@ -226,6 +226,75 @@ export function activate(context: vscode.ExtensionContext): void {
         }
       }
     }),
+    vscode.commands.registerCommand("where.archiveCurrentPlan", async () => {
+      try {
+        const archived = await store.archiveCurrentPlan();
+        const pick = await vscode.window.showInformationMessage(
+          `Plan archived: ${archived.filePath}`,
+          "Open Archive",
+          "Start New Plan"
+        );
+        if (pick === "Open Archive") {
+          const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(archived.filePath));
+          await vscode.window.showTextDocument(doc, { preview: false });
+          return;
+        }
+        if (pick === "Start New Plan") {
+          const title = await vscode.window.showInputBox({
+            prompt: "New plan title",
+            value: "Agent Plan"
+          });
+          if (!title?.trim()) {
+            return;
+          }
+          await store.resetSourcePlan(title);
+          vscode.window.showInformationMessage("Started a new plan in source file.");
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to archive plan.";
+        vscode.window.showErrorMessage(message);
+      }
+    }),
+    vscode.commands.registerCommand("where.queryPlanHistory", async () => {
+      try {
+        const entries = await store.listArchivedPlans();
+        if (entries.length === 0) {
+          vscode.window.showInformationMessage("No archived plans found.");
+          return;
+        }
+        const pick = await vscode.window.showQuickPick(
+          entries.map((entry) => ({
+            label: entry.title,
+            description: formatArchivedAt(entry.archivedAt),
+            detail: `Source: ${entry.sourceFile}`,
+            entry
+          })),
+          { placeHolder: "Select an archived plan to preview" }
+        );
+        if (!pick) {
+          return;
+        }
+        const preview = [
+          `# Archived Plan Preview: ${pick.entry.title}`,
+          "",
+          `- Archived At: ${pick.entry.archivedAt}`,
+          `- Source: ${pick.entry.sourceFile}`,
+          "",
+          "## Snapshot",
+          "",
+          pick.entry.snapshot,
+          ""
+        ].join("\n");
+        const doc = await vscode.workspace.openTextDocument({
+          language: "markdown",
+          content: preview
+        });
+        await vscode.window.showTextDocument(doc, { preview: false });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to query plan history.";
+        vscode.window.showErrorMessage(message);
+      }
+    }),
     vscode.commands.registerCommand("where.writeTaskToSource", async () => {
       const title = await vscode.window.showInputBox({
         prompt: "Task title to write into source file",
@@ -611,4 +680,12 @@ function extractTaskId(taskArg: unknown): string | undefined {
     }
   }
   return undefined;
+}
+
+function formatArchivedAt(iso: string): string {
+  const time = new Date(iso);
+  if (Number.isNaN(time.getTime())) {
+    return iso;
+  }
+  return time.toLocaleString();
 }

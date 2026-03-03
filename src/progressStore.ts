@@ -19,8 +19,21 @@ import {
 } from "./sourceEditor";
 
 const DEFAULT_SOURCE_FILE = ".where-agent-progress.md";
+const DEFAULT_HISTORY_FILE = ".where-history.json";
 const AGENTS_FILE_NAME = "AGENTS.md";
 const DEFAULT_TITLE = "Agent Plan";
+
+type PlanHistoryEntry = {
+  archivedAt: string;
+  title: string;
+  sourceFile: string;
+  snapshot: string;
+};
+
+type PlanHistoryFile = {
+  version: 1;
+  entries: PlanHistoryEntry[];
+};
 
 export class ProgressStore {
   private readonly onDidChangeEmitter = new vscode.EventEmitter<void>();
@@ -55,18 +68,21 @@ export class ProgressStore {
       await fs.access(filePath);
       return { filePath, created: false };
     } catch {
-      const template = [
-        "# Plan: Where Plugin Progress",
-        "",
-        "- [ ] Define goal and milestones",
-        "- [~] Implement current feature",
-        "- [!] Record blockers",
-        "- [x] Mark finished tasks"
-      ].join("\n");
+      const template = defaultPlanTemplate("Where Plugin Progress");
       await fs.writeFile(filePath, `${template}\n`, "utf8");
       this.notifyChanged();
       return { filePath, created: true };
     }
+  }
+
+  public async resetSourcePlan(title?: string): Promise<void> {
+    const filePath = this.resolveSourceFilePath();
+    if (!filePath) {
+      throw new Error("Open a workspace folder first.");
+    }
+    const nextTitle = title?.trim() || DEFAULT_TITLE;
+    await fs.writeFile(filePath, `${defaultPlanTemplate(nextTitle)}\n`, "utf8");
+    this.notifyChanged();
   }
 
   public async ensureAgentsInstructionFile(): Promise<{ filePath: string; created: boolean }> {
@@ -132,6 +148,37 @@ export class ProgressStore {
     return analyzeMarkdownPlanText(source);
   }
 
+  public async archiveCurrentPlan(): Promise<{ filePath: string; title: string; archivedAt: string }> {
+    const sourcePath = this.resolveSourceFilePath();
+    const historyPath = this.resolveHistoryFilePath();
+    if (!sourcePath || !historyPath) {
+      throw new Error("Open a workspace folder first.");
+    }
+
+    const source = await this.readSourceText();
+    const plan = parseMarkdownPlanText(source, new Date().toISOString(), DEFAULT_TITLE);
+    const title = plan.title.trim() || DEFAULT_TITLE;
+    const archivedAt = new Date().toISOString();
+    const current = await this.readHistoryFile(historyPath);
+    current.entries.push({
+      archivedAt,
+      title,
+      sourceFile: path.basename(sourcePath),
+      snapshot: source.trimEnd()
+    });
+    await fs.writeFile(historyPath, `${JSON.stringify(current, null, 2)}\n`, "utf8");
+    return { filePath: historyPath, title, archivedAt };
+  }
+
+  public async listArchivedPlans(): Promise<PlanHistoryEntry[]> {
+    const historyPath = this.resolveHistoryFilePath();
+    if (!historyPath) {
+      throw new Error("Open a workspace folder first.");
+    }
+    const history = await this.readHistoryFile(historyPath);
+    return [...history.entries].sort((a, b) => b.archivedAt.localeCompare(a.archivedAt));
+  }
+
   public resolveSourceUri(): vscode.Uri | null {
     const filePath = this.resolveSourceFilePath();
     if (!filePath) {
@@ -145,13 +192,13 @@ export class ProgressStore {
   }
 
   private resolveSourceFilePath(): string | null {
-    const folder = vscode.workspace.workspaceFolders?.[0];
-    if (!folder) {
+    const root = this.resolveWorkspaceRootPath();
+    if (!root) {
       return null;
     }
     const config = vscode.workspace.getConfiguration("where");
     const configured = config.get<string>("sourceFile")?.trim() || DEFAULT_SOURCE_FILE;
-    return path.join(folder.uri.fsPath, configured);
+    return path.join(root, configured);
   }
 
   private async editSource(mutator: (source: string) => string): Promise<void> {
@@ -206,11 +253,62 @@ export class ProgressStore {
   }
 
   private resolveAgentsFilePath(): string | null {
-    const folder = vscode.workspace.workspaceFolders?.[0];
-    if (!folder) {
+    const root = this.resolveWorkspaceRootPath();
+    if (!root) {
       return null;
     }
-    return path.join(folder.uri.fsPath, AGENTS_FILE_NAME);
+    return path.join(root, AGENTS_FILE_NAME);
+  }
+
+  private resolveHistoryFilePath(): string | null {
+    const root = this.resolveWorkspaceRootPath();
+    if (!root) {
+      return null;
+    }
+    return path.join(root, this.getHistoryFileSetting());
+  }
+
+  private resolveWorkspaceRootPath(): string | null {
+    const folder = vscode.workspace.workspaceFolders?.[0];
+    return folder?.uri.fsPath ?? null;
+  }
+
+  private getHistoryFileSetting(): string {
+    const config = vscode.workspace.getConfiguration("where");
+    return config.get<string>("historyFile")?.trim() || DEFAULT_HISTORY_FILE;
+  }
+
+  private async readHistoryFile(filePath: string): Promise<PlanHistoryFile> {
+    try {
+      const text = await fs.readFile(filePath, "utf8");
+      const parsed = JSON.parse(text) as Partial<PlanHistoryFile>;
+      if (parsed.version === 1 && Array.isArray(parsed.entries)) {
+        return {
+          version: 1,
+          entries: parsed.entries
+            .filter((entry): entry is PlanHistoryEntry => isValidHistoryEntry(entry))
+            .map((entry) => ({
+              archivedAt: entry.archivedAt,
+              title: entry.title,
+              sourceFile: entry.sourceFile,
+              snapshot: entry.snapshot
+            }))
+        };
+      }
+      throw new Error("Invalid history file format.");
+    } catch (error) {
+      const nodeError = error as NodeJS.ErrnoException;
+      if (nodeError.code === "ENOENT") {
+        return { version: 1, entries: [] };
+      }
+      if (error instanceof SyntaxError) {
+        throw new Error("History file is not valid JSON. Please fix or remove it.");
+      }
+      if (error instanceof Error && error.message === "Invalid history file format.") {
+        throw error;
+      }
+      throw new Error("Failed to read history file.");
+    }
   }
 
   public shouldCreateAgentsOnInit(): boolean {
@@ -251,6 +349,8 @@ export {
   parseMarkdownPlanText,
   statusLabel
 } from "./progressParser";
+
+export type { PlanHistoryEntry };
 
 function defaultAgentsTemplate(): string {
   return [
@@ -296,6 +396,30 @@ function defaultAgentsTemplate(): string {
   ].join("\n");
 }
 
+function defaultPlanTemplate(title: string): string {
+  return [
+    `# Plan: ${title}`,
+    "",
+    "- [ ] Define goal and milestones",
+    "- [~] Implement current feature",
+    "- [!] Record blockers",
+    "- [x] Mark finished tasks"
+  ].join("\n");
+}
+
 function newTaskId(): string {
   return `where-${randomUUID().replace(/-/g, "").slice(0, 12)}`;
+}
+
+function isValidHistoryEntry(value: unknown): value is PlanHistoryEntry {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+  const entry = value as Partial<PlanHistoryEntry>;
+  return (
+    typeof entry.archivedAt === "string" &&
+    typeof entry.title === "string" &&
+    typeof entry.sourceFile === "string" &&
+    typeof entry.snapshot === "string"
+  );
 }

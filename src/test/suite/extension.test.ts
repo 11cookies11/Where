@@ -13,6 +13,8 @@ suite("Extension Test Suite", () => {
       "where.initializeSourceFile",
       "where.initSourceFile",
       "where.openSourceFile",
+      "where.archiveCurrentPlan",
+      "where.queryPlanHistory",
       "where.writeTaskToSource",
       "where.cycleTaskStatus",
       "where.setTaskStatus",
