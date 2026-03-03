@@ -120,12 +120,12 @@
         {
           "command": "where.cycleTaskStatus",
           "when": "view == where.projectProgress && viewItem == where.task",
-          "group": "inline@1"
+          "group": "navigation@0"
         },
         {
           "command": "where.setTaskStatus",
           "when": "view == where.projectProgress && viewItem == where.task",
-          "group": "inline@2"
+          "group": "navigation@1"
         },
         {
           "command": "where.renameTask",
