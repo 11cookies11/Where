@@ -43,6 +43,16 @@ Status mapping:
 - Agent-specific prompt templates live in `prompts/`.
 - If any prompt conflicts with this file, follow this file first.
 
+## History Management (Extension-owned)
+
+- Plan history is managed by the Where extension, not by agents.
+- History file setting: `where.historyFile` (default: `.where-history.json`).
+- Agents should only update the source plan file (`where.sourceFile`) and must not write/append history JSON directly.
+- Use extension commands for history operations:
+  - `Where: Archive Current Plan`
+  - `Where: Query Plan History`
+  - `Where: Open Where Settings` (GUI entry)
+
 ## Reference
 
 - Detailed spec: `docs/AGENT_PROGRESS_SPEC.zh-CN.md`
