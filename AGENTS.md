@@ -30,6 +30,9 @@ Status mapping:
 
 - Keep one task per line.
 - Use indentation for parent-child hierarchy (recommend 2 spaces per level).
+- Use spaces only for indentation (no tabs).
+- Prefer one-level-at-a-time indentation changes (+2 spaces each level) to keep hierarchy stable.
+- Where tree expand/collapse is derived from indentation; do not use `<details>` / `<summary>` syntax.
 - Update existing tasks when status changes; avoid duplicate tasks.
 - Keep task titles short and actionable.
 - For blocked tasks, include blocker reason in the title.
