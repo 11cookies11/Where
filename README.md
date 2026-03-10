@@ -34,12 +34,16 @@ Required format:
 - [ ] Define milestones
   - [x] Draft milestone list
   - [~] Review milestone owners
+    - [ ] Confirm frontend and backend owners
 - [~] Implement parser
+  - [x] Finish baseline syntax parsing
+  - [~] Add edge-case coverage
 - [!] Waiting for external dependency
 - [x] Ship MVP
 ```
 
 Nested subtasks are supported by indentation (recommend 2 spaces per level).
+The sidebar infers tree expand/collapse from indentation, so deeper nesting appears as a multi-level collapsible tree without extra syntax.
 
 Status map:
 - `[ ]` = `todo`

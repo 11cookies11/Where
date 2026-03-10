@@ -7,7 +7,9 @@ Rules:
 - First line: `# Plan: <title>`.
 - Task line format: `- [ ] <title>`, `- [~] <title>`, `- [!] <title>`, `- [x] <title>`.
 - Use spaces for hierarchy (2 spaces per level). Do not use tabs.
+- Multi-level child tasks are supported; express nesting only with indentation.
 - For child tasks, increase indentation by exactly one level each time (recommended: +2 spaces).
+- Do not skip indentation levels.
 - Where tree expand/collapse is inferred from indentation. Do not use `<details>` or other custom folding syntax.
 - Keep sibling tasks at the same indentation width.
 - Keep one task per line.
