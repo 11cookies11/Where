@@ -1,0 +1,24 @@
+﻿{"id":"TRIGGER-001","triggered":true,"success":true,"recovered":null,"time_seconds":24.1,"notes":"added parent and two children"}
+{"id":"TRIGGER-002","triggered":true,"success":true,"recovered":null,"time_seconds":18.7,"notes":"status transitioned and next task activated"}
+{"id":"TRIGGER-003","triggered":true,"success":true,"recovered":null,"time_seconds":16.9,"notes":"plan initialized"}
+{"id":"TRIGGER-004","triggered":true,"success":true,"recovered":null,"time_seconds":14.5,"notes":"blocked task added with reason"}
+{"id":"TRIGGER-005","triggered":true,"success":true,"recovered":null,"time_seconds":19.2,"notes":"third-level nested step added"}
+{"id":"TRIGGER-006","triggered":true,"success":true,"recovered":true,"time_seconds":22.8,"notes":"tab indentation fixed and validated"}
+{"id":"TRIGGER-007","triggered":true,"success":true,"recovered":null,"time_seconds":17.3,"notes":"updated existing task without duplication"}
+{"id":"TRIGGER-008","triggered":true,"success":true,"recovered":null,"time_seconds":15.8,"notes":"where:id comments preserved"}
+{"id":"TRIGGER-009","triggered":true,"success":true,"recovered":true,"time_seconds":21.6,"notes":"reduced multiple in-progress tasks"}
+{"id":"TRIGGER-010","triggered":true,"success":true,"recovered":null,"time_seconds":13.9,"notes":"template-based initialization done"}
+{"id":"NO-TRIGGER-001","triggered":false,"success":true,"recovered":null,"time_seconds":6.0,"notes":"translation request, skill not used"}
+{"id":"NO-TRIGGER-002","triggered":false,"success":true,"recovered":null,"time_seconds":5.4,"notes":"algorithm coding request, skill not used"}
+{"id":"NO-TRIGGER-003","triggered":false,"success":true,"recovered":null,"time_seconds":4.8,"notes":"weather query, skill not used"}
+{"id":"NO-TRIGGER-004","triggered":false,"success":true,"recovered":null,"time_seconds":5.6,"notes":"email polishing request, skill not used"}
+{"id":"NO-TRIGGER-005","triggered":false,"success":true,"recovered":null,"time_seconds":5.1,"notes":"concept explanation, skill not used"}
+{"id":"AMB-001","triggered":true,"success":true,"recovered":null,"time_seconds":12.4,"notes":"task organization implied where plan update"}
+{"id":"AMB-002","triggered":false,"success":true,"recovered":null,"time_seconds":7.0,"notes":"explicitly no file writing"}
+{"id":"AMB-003","triggered":true,"success":true,"recovered":true,"time_seconds":14.7,"notes":"format cleanup request matched skill"}
+{"id":"AMB-004","triggered":false,"success":true,"recovered":null,"time_seconds":8.3,"notes":"non-file plain-text template request, correctly not triggered after boundary rule"}
+{"id":"AMB-005","triggered":true,"success":true,"recovered":null,"time_seconds":11.8,"notes":"explicit where rules request"}
+{"id":"ERR-001","triggered":true,"success":true,"recovered":true,"time_seconds":23.5,"notes":"invalid marker fixed"}
+{"id":"ERR-002","triggered":true,"success":true,"recovered":true,"time_seconds":25.2,"notes":"indentation-level jump fixed"}
+{"id":"ERR-003","triggered":true,"success":true,"recovered":true,"time_seconds":20.1,"notes":"missing file restored"}
+{"id":"ERR-004","triggered":true,"success":true,"recovered":true,"time_seconds":28.6,"notes":"dedupe completed with canonical id preserved and audit note added"}

@@ -102,6 +102,7 @@ npm run preview:fast
 
 - `Where: Initialize Source File`
 - `Where: Init Source File`（别名）
+- `Where: Setup Skill For Current Project`
 - `Where: Open Source File`
 - `Where: Open Where Settings`
 - `Where: Archive Current Plan`
@@ -116,6 +117,8 @@ npm run preview:fast
 - `Where: Validate Source File`
 - `Where: Open Progress Dashboard`
 - `Where: Refresh Progress`
+
+`Where: Setup Skill For Current Project` 会在运行时让你选择 `Codex / Claude / Both / Generic`，并在 `.where/` 下生成对应接入指引。
 
 ## 测试
 

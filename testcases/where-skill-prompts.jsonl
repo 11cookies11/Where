@@ -1,0 +1,24 @@
+﻿{"id":"TRIGGER-001","category":"should_trigger","should_trigger":true,"prompt":"请在 .where-agent-progress.md 里新增一个父任务'实现登录功能'，并加两个子任务。","expected_outcome":"plan_updated"}
+{"id":"TRIGGER-002","category":"should_trigger","should_trigger":true,"prompt":"把任务'完善任务编辑体验'从 [~] 改成 [x]，并把下一个任务置为 [~]。","expected_outcome":"status_transition"}
+{"id":"TRIGGER-003","category":"should_trigger","should_trigger":true,"prompt":"当前计划缺少文件，请初始化 .where-agent-progress.md。","expected_outcome":"plan_initialized"}
+{"id":"TRIGGER-004","category":"should_trigger","should_trigger":true,"prompt":"新增一个阻塞任务，原因是等待 API key。","expected_outcome":"blocked_task_added"}
+{"id":"TRIGGER-005","category":"should_trigger","should_trigger":true,"prompt":"把'性能优化'任务下再加一层子任务（三级缩进）。","expected_outcome":"nested_task_added"}
+{"id":"TRIGGER-006","category":"should_trigger","should_trigger":true,"prompt":"修复计划文件里的 tab 缩进并重新校验。","expected_outcome":"indentation_fixed"}
+{"id":"TRIGGER-007","category":"should_trigger","should_trigger":true,"prompt":"不要新增重复任务，直接更新现有任务状态。","expected_outcome":"no_duplicate_task"}
+{"id":"TRIGGER-008","category":"should_trigger","should_trigger":true,"prompt":"请保留 where:id 注释，更新任务标题内容。","expected_outcome":"id_preserved"}
+{"id":"TRIGGER-009","category":"should_trigger","should_trigger":true,"prompt":"将多个 [~] 任务收敛为一个活跃任务，并解释处理依据。","expected_outcome":"in_progress_reduced"}
+{"id":"TRIGGER-010","category":"should_trigger","should_trigger":true,"prompt":"按 where 规则新建计划模板并写入初始任务。","expected_outcome":"template_applied"}
+{"id":"NO-TRIGGER-001","category":"should_not_trigger","should_trigger":false,"prompt":"帮我把这段英文翻译成中文。","expected_outcome":"skill_not_used"}
+{"id":"NO-TRIGGER-002","category":"should_not_trigger","should_trigger":false,"prompt":"写一个 Python 快排函数。","expected_outcome":"skill_not_used"}
+{"id":"NO-TRIGGER-003","category":"should_not_trigger","should_trigger":false,"prompt":"今天上海天气如何？","expected_outcome":"skill_not_used"}
+{"id":"NO-TRIGGER-004","category":"should_not_trigger","should_trigger":false,"prompt":"帮我润色这封求职邮件。","expected_outcome":"skill_not_used"}
+{"id":"NO-TRIGGER-005","category":"should_not_trigger","should_trigger":false,"prompt":"解释一下什么是 CAP 定理。","expected_outcome":"skill_not_used"}
+{"id":"AMB-001","category":"ambiguous","should_trigger":true,"prompt":"帮我把当前任务整理一下，保持层级清晰。","expected_outcome":"plan_updated"}
+{"id":"AMB-002","category":"ambiguous","should_trigger":false,"prompt":"整理一下我今天要做的事，不用写文件。","expected_outcome":"skill_not_used"}
+{"id":"AMB-003","category":"ambiguous","should_trigger":true,"prompt":"我这个 where 计划有点乱，先修一下格式。","expected_outcome":"format_fixed"}
+{"id":"AMB-004","category":"ambiguous","should_trigger":false,"prompt":"给我一个项目计划模板，纯文本回复就行。","expected_outcome":"skill_not_used"}
+{"id":"AMB-005","category":"ambiguous","should_trigger":true,"prompt":"请按 where 进度文件规则推进下一步。","expected_outcome":"plan_updated"}
+{"id":"ERR-001","category":"error_injection","should_trigger":true,"prompt":"计划文件里有非法状态 [*]，请修复并校验。","expected_outcome":"error_recovered"}
+{"id":"ERR-002","category":"error_injection","should_trigger":true,"prompt":"任务树出现跳级缩进，请恢复到合法层级。","expected_outcome":"error_recovered"}
+{"id":"ERR-003","category":"error_injection","should_trigger":true,"prompt":".where-agent-progress.md 丢失了，恢复并继续当前任务。","expected_outcome":"error_recovered"}
+{"id":"ERR-004","category":"error_injection","should_trigger":true,"prompt":"重复任务太多，合并后保持 where:id 注释不丢失。","expected_outcome":"error_recovered"}

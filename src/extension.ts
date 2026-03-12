@@ -1,4 +1,6 @@
 ﻿import * as vscode from "vscode";
+import * as path from "path";
+import { promises as fs } from "fs";
 import { PlanData, ProgressStore, Task, statusLabel } from "./progressStore";
 
 class ProgressItem extends vscode.TreeItem {
@@ -114,6 +116,7 @@ export function activate(context: vscode.ExtensionContext): void {
           { label: "Archive Current Plan", command: "where.archiveCurrentPlan" },
           { label: "Query Plan History", command: "where.queryPlanHistory" },
           { label: "Open Source File", command: "where.openSourceFile" },
+          { label: "Setup Skill For Current Project", command: "where.setupSkillForProject" },
           { label: "Write Task To Source", command: "where.writeTaskToSource" },
           { label: "Open Progress Dashboard", command: "where.openDashboard" },
           { label: "Validate Source File", command: "where.validateSource" },
@@ -228,6 +231,81 @@ export function activate(context: vscode.ExtensionContext): void {
     }),
     vscode.commands.registerCommand("where.initializeSourceFile", runInitializeSourceFile),
     vscode.commands.registerCommand("where.initSourceFile", runInitializeSourceFile),
+    vscode.commands.registerCommand("where.setupSkillForProject", async () => {
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+      if (!workspaceFolder) {
+        vscode.window.showWarningMessage("Open a workspace folder first.");
+        return;
+      }
+
+      const sourceDir = path.join(context.extensionPath, "skills", "where-skill");
+      const destinationDir = path.join(
+        workspaceFolder.uri.fsPath,
+        ".where",
+        "skills",
+        "where-skill"
+      );
+      const setupChoice = await vscode.window.showQuickPick(
+        [
+          { label: "Codex", value: "codex" as SkillSetupTarget },
+          { label: "Claude", value: "claude" as SkillSetupTarget },
+          { label: "Both", value: "both" as SkillSetupTarget },
+          { label: "Generic", value: "generic" as SkillSetupTarget }
+        ],
+        { placeHolder: "Select skill setup target" }
+      );
+      if (!setupChoice) {
+        return;
+      }
+      const setupGuidePaths = resolveSetupGuidePaths(workspaceFolder.uri.fsPath, setupChoice.value);
+
+      try {
+        await fs.access(sourceDir);
+      } catch {
+        vscode.window.showErrorMessage("Bundled where-skill was not found in extension package.");
+        return;
+      }
+
+      try {
+        const destinationExists = await pathExists(destinationDir);
+        if (destinationExists) {
+          const pick = await vscode.window.showWarningMessage(
+            "where-skill already exists in this project. Overwrite it?",
+            "Overwrite",
+            "Skip"
+          );
+          if (pick !== "Overwrite") {
+            vscode.window.showInformationMessage("Skill setup skipped.");
+            return;
+          }
+          await fs.rm(destinationDir, { recursive: true, force: true });
+        }
+
+        await fs.mkdir(path.dirname(destinationDir), { recursive: true });
+        await fs.cp(sourceDir, destinationDir, { recursive: true });
+        await fs.mkdir(path.join(workspaceFolder.uri.fsPath, ".where"), { recursive: true });
+        for (const guide of setupGuidePaths) {
+          await fs.writeFile(guide.filePath, buildSkillSetupGuide(guide.type), "utf8");
+        }
+
+        const pick = await vscode.window.showInformationMessage(
+          "where-skill has been set up for this project.",
+          "Open Skill Folder",
+          "Open Setup Guide"
+        );
+        if (pick === "Open Skill Folder") {
+          await vscode.commands.executeCommand("revealFileInOS", vscode.Uri.file(destinationDir));
+          return;
+        }
+        if (pick === "Open Setup Guide") {
+          const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(setupGuidePaths[0].filePath));
+          await vscode.window.showTextDocument(doc, { preview: false });
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to set up skill.";
+        vscode.window.showErrorMessage(`Failed to set up where-skill: ${message}`);
+      }
+    }),
     vscode.commands.registerCommand("where.openSourceFile", async () => {
       const uri = store.resolveSourceUri();
       if (!uri) {
@@ -708,4 +786,86 @@ function formatArchivedAt(iso: string): string {
     return iso;
   }
   return time.toLocaleString();
+}
+
+async function pathExists(filePath: string): Promise<boolean> {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+type SkillSetupTarget = "codex" | "claude" | "both" | "generic";
+type SkillGuideType = "codex" | "claude" | "generic";
+
+function resolveSetupGuidePaths(
+  workspacePath: string,
+  target: SkillSetupTarget
+): Array<{ filePath: string; type: SkillGuideType }> {
+  const base = path.join(workspacePath, ".where");
+  if (target === "codex") {
+    return [{ filePath: path.join(base, "SKILL_SETUP.codex.md"), type: "codex" }];
+  }
+  if (target === "claude") {
+    return [{ filePath: path.join(base, "SKILL_SETUP.claude.md"), type: "claude" }];
+  }
+  if (target === "both") {
+    return [
+      { filePath: path.join(base, "SKILL_SETUP.codex.md"), type: "codex" },
+      { filePath: path.join(base, "SKILL_SETUP.claude.md"), type: "claude" }
+    ];
+  }
+  return [{ filePath: path.join(base, "SKILL_SETUP.md"), type: "generic" }];
+}
+
+function buildSkillSetupGuide(target: SkillGuideType): string {
+  const header = [
+    "# Where Skill Setup",
+    "",
+    "The project-local where-skill has been installed to:",
+    "",
+    "- `.where/skills/where-skill`",
+    "",
+    "## Notes",
+    "",
+    "- Keep `AGENTS.md` and this skill aligned.",
+    "- Re-run `Where: Setup Skill For Current Project` after extension upgrades if needed.",
+    ""
+  ];
+
+  if (target === "codex") {
+    return [
+      ...header,
+      "## For Codex",
+      "",
+      "- Reference `.where/skills/where-skill` in your project instructions.",
+      "- Ask Codex to use `where-skill` for `.where-agent-progress.md` updates.",
+      "- Prefer running `scripts/validate_where_plan.ps1` after plan edits.",
+      ""
+    ].join("\n");
+  }
+
+  if (target === "claude") {
+    return [
+      ...header,
+      "## For Claude",
+      "",
+      "- Add `.where/skills/where-skill` to Claude local project context.",
+      "- Trigger it for plan file edits, status transitions, and format recovery.",
+      "- Keep task IDs and indentation hierarchy unchanged during edits.",
+      ""
+    ].join("\n");
+  }
+
+  return [
+    ...header,
+    "## Generic Setup",
+    "",
+    "- Point your AI agent to `.where/skills/where-skill`.",
+    "- Use this skill only when editing `.where-agent-progress.md`.",
+    "- Validate plan format after edits before final output.",
+    ""
+  ].join("\n");
 }
