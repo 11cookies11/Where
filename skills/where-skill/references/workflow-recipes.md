@@ -1,0 +1,32 @@
+﻿# Workflow Recipes
+
+## Recipe 1: Start New Work
+
+1. Find a matching parent task.
+2. If missing, add a new concise parent task.
+3. Set target task to `[~]`.
+4. Add the first child step as `[ ]`.
+
+## Recipe 2: Mark Completion
+
+1. Mark completed child steps `[x]`.
+2. Mark parent `[x]` when all required children are done.
+3. Move next relevant task to `[~]` if work continues.
+
+## Recipe 3: Handle Blockers
+
+1. Set blocked task to `[!]`.
+2. Add blocker reason in the title.
+3. Add a separate unblocked fallback task if work can continue.
+
+## Recipe 4: Keep Tree Stable
+
+1. Do not move unrelated branches.
+2. Keep indentation changes by one level only.
+3. Reuse existing wording when possible to keep history readable.
+
+## Recipe 5: Recover from Errors
+
+1. Identify error category with `references/error-handling.md`.
+2. Apply the matching recovery steps.
+3. Run validation script again before handoff.
