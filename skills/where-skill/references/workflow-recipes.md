@@ -30,3 +30,12 @@
 1. Identify error category with `references/error-handling.md`.
 2. Apply the matching recovery steps.
 3. Run validation script again before handoff.
+
+## Recipe 6: Dedupe While Preserving IDs
+
+1. Detect duplicates by semantic title match in same branch.
+2. Select canonical line (earliest task line in branch).
+3. Preserve canonical `where:id` comment unchanged.
+4. Merge status/title updates into canonical line.
+5. Remove duplicates only after confirming children remain attached.
+6. If non-canonical IDs are removed, keep a one-line audit note for manual cleanup.

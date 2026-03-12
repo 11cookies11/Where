@@ -1,7 +1,11 @@
-﻿param(
+param(
   [string]$CasesPath = 'testcases/where-skill-prompts.jsonl',
   [string]$RunsPath = 'testcases/where-skill-runs.jsonl',
-  [string]$OutPath = 'reports/where-skill-eval-latest.md'
+  [string]$OutPath = 'reports/where-skill-eval-latest.md',
+  [double]$MinPrecision = 0.0,
+  [double]$MinRecall = 0.0,
+  [double]$MinSuccessRate = 0.0,
+  [double]$MinRecoveryRate = 0.0
 )
 
 function Read-Jsonl([string]$path) {
@@ -115,3 +119,17 @@ $report = $reportTemplate -f $precision, $recall, $successRate, $recoveryRate, $
 $report | Set-Content -Encoding UTF8 $OutPath
 Write-Output "Report written: $OutPath"
 Write-Output ("Precision={0:P2}, Recall={1:P2}, Success={2:P2}, Recovery={3:P2}" -f $precision, $recall, $successRate, $recoveryRate)
+
+$thresholdFailures = New-Object System.Collections.Generic.List[string]
+if ($precision -lt $MinPrecision) { $thresholdFailures.Add(("Precision {0:P2} < target {1:P2}" -f $precision, $MinPrecision)) }
+if ($recall -lt $MinRecall) { $thresholdFailures.Add(("Recall {0:P2} < target {1:P2}" -f $recall, $MinRecall)) }
+if ($successRate -lt $MinSuccessRate) { $thresholdFailures.Add(("Task Success Rate {0:P2} < target {1:P2}" -f $successRate, $MinSuccessRate)) }
+if ($recoveryRate -lt $MinRecoveryRate) { $thresholdFailures.Add(("Recovery Success Rate {0:P2} < target {1:P2}" -f $recoveryRate, $MinRecoveryRate)) }
+
+if ($thresholdFailures.Count -gt 0) {
+  Write-Output "KPI gate: FAILED"
+  $thresholdFailures | ForEach-Object { Write-Output ("- " + $_) }
+  exit 1
+}
+
+Write-Output "KPI gate: PASSED"

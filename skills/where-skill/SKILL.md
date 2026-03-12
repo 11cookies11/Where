@@ -1,6 +1,6 @@
 ﻿---
 name: where-skill
-description: Manage planning and progress tracking for the Where extension using `.where-agent-progress.md`. Use when Codex needs to create a new plan, update task status, maintain indentation-based task hierarchy, keep one-task-per-line formatting, preserve existing task identity comments, and resolve blocked/in-progress transitions in multi-agent workflows.
+description: Manage planning and progress tracking for the Where extension using `.where-agent-progress.md`. Use when Codex needs to create a new plan file, update existing plan task status, maintain indentation-based task hierarchy, keep one-task-per-line formatting, preserve existing task identity comments, and resolve blocked/in-progress transitions in multi-agent workflows. Do not use this skill for generic planning advice or plain-text templates when the user does not request file updates.
 ---
 
 # Where Skill
@@ -17,6 +17,12 @@ Keep the source-of-truth plan file valid, concise, and aligned with real executi
 6. Use indentation-based multi-level nesting for tree expand/collapse behavior.
 7. Finish by validating format via `scripts/validate_where_plan.ps1`.
 8. If validation fails or file state is inconsistent, follow `references/error-handling.md`.
+
+## Enforce trigger boundary
+
+- Trigger only when user intent requires plan file creation or modification.
+- Do not trigger for pure consultation, generic project planning text, or template brainstorming without file edits.
+- If intent is ambiguous, prefer asking or giving plain guidance without editing files.
 
 ## Enforce plan contract
 
@@ -47,6 +53,7 @@ Keep the source-of-truth plan file valid, concise, and aligned with real executi
 - Read `references/where-progress-rules.md` for strict format and status rules.
 - Read `references/workflow-recipes.md` for edit patterns and edge cases.
 - Read `references/error-handling.md` for recovery steps and fallback strategy.
+- Read `references/integration-mapping.md` for cross-agent trigger mapping and guardrails.
 - Use `assets/plan-template.md` when creating or resetting a plan skeleton.
 - Run `scripts/init_where_plan.ps1` to initialize a missing plan file.
 - Run `scripts/validate_where_plan.ps1` after edits to catch format regressions.

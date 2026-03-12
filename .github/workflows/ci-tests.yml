@@ -40,3 +40,26 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y xvfb
       - run: npm ci
       - run: npm run test:integration
+
+  skill-eval:
+    name: Skill Eval (where-skill)
+    runs-on: ubuntu-latest
+    needs: integration
+    steps:
+      - uses: actions/checkout@v4
+      - name: Evaluate where-skill KPI baseline
+        shell: pwsh
+        run: |
+          ./scripts/eval-where-skill.ps1 `
+            -CasesPath testcases/where-skill-prompts.jsonl `
+            -RunsPath testcases/where-skill-runs.round2.jsonl `
+            -OutPath reports/where-skill-eval-ci.md `
+            -MinPrecision 0.90 `
+            -MinRecall 0.90 `
+            -MinSuccessRate 0.85 `
+            -MinRecoveryRate 0.80
+      - name: Upload skill eval report
+        uses: actions/upload-artifact@v4
+        with:
+          name: where-skill-eval-report
+          path: reports/where-skill-eval-ci.md
