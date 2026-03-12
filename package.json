@@ -36,6 +36,7 @@
     "onStartupFinished",
     "onCommand:where.initializeSourceFile",
     "onCommand:where.initSourceFile",
+    "onCommand:where.setupSkillForProject",
     "onCommand:where.openSourceFile",
     "onCommand:where.openWhereSettings",
     "onCommand:where.archiveCurrentPlan",
@@ -59,6 +60,10 @@
       {
         "command": "where.openSourceFile",
         "title": "Where: Open Source File"
+      },
+      {
+        "command": "where.setupSkillForProject",
+        "title": "Where: Setup Skill For Current Project"
       },
       {
         "command": "where.openWhereSettings",
@@ -180,6 +185,9 @@
         },
         {
           "command": "where.openSourceFile"
+        },
+        {
+          "command": "where.setupSkillForProject"
         },
         {
           "command": "where.openWhereSettings"

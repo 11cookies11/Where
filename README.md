@@ -96,6 +96,7 @@ npm run preview:fast
 
 - `Where: Initialize Source File`
 - `Where: Init Source File` (alias)
+- `Where: Setup Skill For Current Project`
 - `Where: Open Source File`
 - `Where: Open Where Settings`
 - `Where: Archive Current Plan`
@@ -110,6 +111,8 @@ npm run preview:fast
 - `Where: Validate Source File`
 - `Where: Open Progress Dashboard`
 - `Where: Refresh Progress`
+
+`Where: Setup Skill For Current Project` prompts for `Codex / Claude / Both / Generic` and writes matching setup guides under `.where/`.
 
 ## Testing
 
