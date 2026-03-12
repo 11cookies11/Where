@@ -48,6 +48,13 @@ Status mapping:
 - Agent-specific prompt templates live in `prompts/`.
 - If any prompt conflicts with this file, follow this file first.
 
+## Skill Integration (Optional but Recommended)
+
+- If project skill setup has been run, use `.where/skills/where-skill` as the execution companion for this contract.
+- `AGENTS.md` remains the policy source; skill files provide reusable workflow/scripts/references.
+- If there is any conflict, follow `AGENTS.md` first, then align skill files.
+- If skill is not present, continue with this file and `prompts/` only.
+
 ## History Management (Extension-owned)
 
 - Plan history is managed by the Where extension, not by agents.
