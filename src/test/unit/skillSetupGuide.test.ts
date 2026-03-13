@@ -1,4 +1,5 @@
 import * as assert from "node:assert";
+import * as path from "path";
 import { buildSkillSetupGuide, resolveSetupGuidePaths } from "../../skillSetupGuide";
 
 suite("Skill Setup Guide Unit Tests", () => {
@@ -16,8 +17,8 @@ suite("Skill Setup Guide Unit Tests", () => {
     const guides = resolveSetupGuidePaths("D:\\Repo", "both");
 
     assert.deepStrictEqual(guides, [
-      { filePath: "D:\\Repo\\.where\\SKILL_SETUP.codex.md", type: "codex" },
-      { filePath: "D:\\Repo\\.where\\SKILL_SETUP.claude.md", type: "claude" }
+      { filePath: path.join("D:\\Repo", ".where", "SKILL_SETUP.codex.md"), type: "codex" },
+      { filePath: path.join("D:\\Repo", ".where", "SKILL_SETUP.claude.md"), type: "claude" }
     ]);
   });
 });

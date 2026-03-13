@@ -8,6 +8,10 @@
 
 ## [Unreleased]
 
+## [0.2.9] - 2026-03-13
+
+- fix: 修复 skill setup guide 路径断言的跨平台兼容性问题，确保 Linux 和 macOS 上的 CI / Release VSIX 通过。
+
 ## [0.2.8] - 2026-03-13
 
 - feat: 在 skill 指南、提示词模板与项目接入流程中保留 Where 的层级布局语义。

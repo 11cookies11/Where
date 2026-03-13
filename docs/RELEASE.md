@@ -4,7 +4,7 @@
 
 - Extension ID: `11cookies11.where-progress`
 - Package name: `where-progress`
-- Current version: `0.2.8`
+- Current version: `0.2.9`
 
 ## Semantic Version Policy
 

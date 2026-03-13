@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.9] - 2026-03-13
+
+- fix: make skill setup guide path assertions cross-platform so CI and Release VSIX pass on Linux and macOS.
+
 ## [0.2.8] - 2026-03-13
 
 - feat: preserve Where hierarchy semantics across skill guidance, prompt templates, and setup flow.
