@@ -2,6 +2,7 @@
 import * as path from "path";
 import { promises as fs } from "fs";
 import { PlanData, ProgressStore, Task, statusLabel } from "./progressStore";
+import { buildSkillSetupGuide, resolveSetupGuidePaths, SkillSetupTarget } from "./skillSetupGuide";
 
 class ProgressItem extends vscode.TreeItem {
   constructor(
@@ -795,77 +796,4 @@ async function pathExists(filePath: string): Promise<boolean> {
   } catch {
     return false;
   }
-}
-
-type SkillSetupTarget = "codex" | "claude" | "both" | "generic";
-type SkillGuideType = "codex" | "claude" | "generic";
-
-function resolveSetupGuidePaths(
-  workspacePath: string,
-  target: SkillSetupTarget
-): Array<{ filePath: string; type: SkillGuideType }> {
-  const base = path.join(workspacePath, ".where");
-  if (target === "codex") {
-    return [{ filePath: path.join(base, "SKILL_SETUP.codex.md"), type: "codex" }];
-  }
-  if (target === "claude") {
-    return [{ filePath: path.join(base, "SKILL_SETUP.claude.md"), type: "claude" }];
-  }
-  if (target === "both") {
-    return [
-      { filePath: path.join(base, "SKILL_SETUP.codex.md"), type: "codex" },
-      { filePath: path.join(base, "SKILL_SETUP.claude.md"), type: "claude" }
-    ];
-  }
-  return [{ filePath: path.join(base, "SKILL_SETUP.md"), type: "generic" }];
-}
-
-function buildSkillSetupGuide(target: SkillGuideType): string {
-  const header = [
-    "# Where Skill Setup",
-    "",
-    "The project-local where-skill has been installed to:",
-    "",
-    "- `.where/skills/where-skill`",
-    "",
-    "## Notes",
-    "",
-    "- Keep `AGENTS.md` and this skill aligned.",
-    "- Re-run `Where: Setup Skill For Current Project` after extension upgrades if needed.",
-    ""
-  ];
-
-  if (target === "codex") {
-    return [
-      ...header,
-      "## For Codex",
-      "",
-      "- Reference `.where/skills/where-skill` in your project instructions.",
-      "- Ask Codex to use `where-skill` for `.where-agent-progress.md` updates.",
-      "- Prefer running `scripts/validate_where_plan.ps1` after plan edits.",
-      ""
-    ].join("\n");
-  }
-
-  if (target === "claude") {
-    return [
-      ...header,
-      "## For Claude",
-      "",
-      "- Add `.where/skills/where-skill` to Claude local project context.",
-      "- Trigger it for plan file edits, status transitions, and format recovery.",
-      "- Keep task IDs and indentation hierarchy unchanged during edits.",
-      ""
-    ].join("\n");
-  }
-
-  return [
-    ...header,
-    "## Generic Setup",
-    "",
-    "- Point your AI agent to `.where/skills/where-skill`.",
-    "- Use this skill only when editing `.where-agent-progress.md`.",
-    "- Validate plan format after edits before final output.",
-    ""
-  ].join("\n");
 }

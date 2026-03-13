@@ -9,6 +9,7 @@ Use this mapping to keep skill triggering behavior consistent across Codex, Clau
 - User explicitly references `.where-agent-progress.md`.
 - User asks to create/update task states (`[ ]`, `[~]`, `[!]`, `[x]`).
 - User asks to fix plan format, indentation hierarchy, or duplicate task lines.
+- User asks about Where board/sidebar/whiteboard tree layout or complains that tasks were flattened.
 - User asks to preserve `where:id` while editing tasks.
 
 ## Negative Trigger Signals
@@ -24,6 +25,7 @@ Use this mapping to keep skill triggering behavior consistent across Codex, Clau
 - Trigger when user asks direct plan-file operations in workspace.
 - Prefer immediate file edits and post-edit validation.
 - If intent is ambiguous, avoid editing and ask for confirmation once.
+- Treat indentation as UI structure, not decoration; preserve nested branches so Where keeps the intended grouped layout.
 
 ### Claude
 

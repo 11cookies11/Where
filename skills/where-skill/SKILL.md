@@ -1,11 +1,13 @@
 ﻿---
 name: where-skill
-description: Manage planning and progress tracking for the Where extension using `.where-agent-progress.md`. Use when Codex needs to create a new plan file, update existing plan task status, maintain indentation-based task hierarchy, keep one-task-per-line formatting, preserve existing task identity comments, and resolve blocked/in-progress transitions in multi-agent workflows. Do not use this skill for generic planning advice or plain-text templates when the user does not request file updates.
+description: Manage planning and progress tracking for the Where extension using `.where-agent-progress.md`. Use when Codex needs to create or update the workspace plan file, maintain indentation-based parent/child task hierarchy, preserve the tree structure that drives Where sidebar and whiteboard layout, keep one-task-per-line formatting, preserve existing task identity comments, and resolve blocked/in-progress transitions in multi-agent workflows. Do not use this skill for generic planning advice or plain-text templates when the user does not request file updates.
 ---
 
 # Where Skill
 
 Keep the source-of-truth plan file valid, concise, and aligned with real execution.
+
+Treat indentation as product behavior, not cosmetic formatting. Where renders nested tasks as a collapsible multi-level tree, so flattening branches changes the UI layout and loses planning context.
 
 ## Use this workflow
 
@@ -14,7 +16,7 @@ Keep the source-of-truth plan file valid, concise, and aligned with real executi
 3. Update existing task lines first; add new lines only when no existing task matches.
 4. Keep status transitions explicit (`[ ] -> [~] -> [x]` or `[!]`).
 5. Keep hierarchy stable with 2-space indentation increments.
-6. Use indentation-based multi-level nesting for tree expand/collapse behavior.
+6. Preserve or create indentation-based multi-level nesting so Where keeps the intended board/sidebar layout.
 7. Finish by validating format via `scripts/validate_where_plan.ps1`.
 8. If validation fails or file state is inconsistent, follow `references/error-handling.md`.
 
@@ -33,6 +35,7 @@ Keep the source-of-truth plan file valid, concise, and aligned with real executi
 - Do not skip indentation levels.
 - Keep task titles short and actionable.
 - Include blocker reason in blocked task title.
+- Do not flatten child tasks into sibling tasks unless the user explicitly asks to restructure the plan.
 
 ## Preserve existing structure
 
@@ -40,12 +43,34 @@ Keep the source-of-truth plan file valid, concise, and aligned with real executi
 - Do not duplicate a task line to represent status change; edit the original line.
 - Prefer one active `[~]` parent task at a time unless parallel work is clearly intended.
 - Mark completed parent and relevant children `[x]` together.
+- Preserve branch meaning: parent tasks describe outcomes, child tasks describe scoped steps inside that branch.
+
+## Hierarchy example
+
+Wrong: flattening removes the branch grouping that Where uses for layout.
+
+```md
+- [~] Improve task editing
+- [x] Support cycle task status
+- [ ] Optimize rename flow
+- [ ] Add keyboard shortcuts
+```
+
+Correct: keep scoped work nested under the parent branch.
+
+```md
+- [~] Improve task editing
+  - [x] Support cycle task status
+  - [ ] Optimize rename flow
+  - [ ] Add keyboard shortcuts
+```
 
 ## Resolve common scenarios
 
 - New request fits existing parent task: add a child task line under that parent.
 - User asks for execution now: set the relevant task to `[~]` before edits.
 - Task is complete: set parent and done children `[x]`, then move next target to `[~]`.
+- User refers to dashboard, board, sidebar, whiteboard, tree, branch, or nested layout: treat that as a signal to protect hierarchy and avoid flattening.
 - Any parse/write/structure error: resolve using `references/error-handling.md`.
 
 ## Use bundled resources

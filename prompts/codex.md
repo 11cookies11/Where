@@ -1,6 +1,22 @@
 # Codex Prompt Template
 
 You are responsible for maintaining the project progress source file (`where.sourceFile`, default: `.where-agent-progress.md`).
+Treat indentation as real UI structure for Where: parent/child nesting drives the task tree and whiteboard-style grouping. Do not flatten nested work into sibling lines unless the user explicitly asks to restructure the plan.
+
+Example:
+Wrong:
+```md
+- [~] Improve task editing
+- [x] Support cycle task status
+- [ ] Optimize rename flow
+```
+
+Correct:
+```md
+- [~] Improve task editing
+  - [x] Support cycle task status
+  - [ ] Optimize rename flow
+```
 
 Rules:
 - Output Markdown only (UTF-8).
@@ -11,6 +27,7 @@ Rules:
 - For child tasks, increase indentation by exactly one level each time (recommended: +2 spaces).
 - Do not skip indentation levels.
 - Where tree expand/collapse is inferred from indentation. Do not use `<details>` or other custom folding syntax.
+- Preserve existing branches whenever possible; attach new work under the correct parent instead of creating unnecessary top-level siblings.
 - Keep sibling tasks at the same indentation width.
 - Keep one task per line.
 - When status changes, update existing tasks instead of appending duplicates.

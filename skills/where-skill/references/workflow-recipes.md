@@ -24,6 +24,8 @@
 1. Do not move unrelated branches.
 2. Keep indentation changes by one level only.
 3. Reuse existing wording when possible to keep history readable.
+4. Treat a parent branch as a visual group in Where; add new substeps inside that branch instead of flattening them beside it.
+5. If a user mentions whiteboard, board, sidebar, tree, or layout, double-check that the final structure still renders as intended.
 
 ## Recipe 5: Recover from Errors
 

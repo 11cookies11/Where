@@ -35,6 +35,8 @@ Status mapping:
 - Prefer one-level-at-a-time indentation changes (+2 spaces each level) to keep hierarchy stable.
 - Do not skip indentation levels (for example, parent at 0 spaces and child directly at 6 spaces).
 - Where tree expand/collapse is derived from indentation; do not use `<details>` / `<summary>` syntax.
+- Treat indentation as Where UI structure, not cosmetic formatting; flattening children into siblings changes board/sidebar grouping.
+- Prefer adding scoped work under the existing parent branch instead of creating unnecessary top-level siblings.
 - Update existing tasks when status changes; avoid duplicate tasks.
 - Keep task titles short and actionable.
 - For blocked tasks, include blocker reason in the title.
