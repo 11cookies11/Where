@@ -8,9 +8,8 @@
 
 ## [Unreleased]
 
-- feat: 初始化支持 AGENTS 配置开关与自定义模板路径。
-- feat: 新增 Markdown 任务编辑命令（状态、重命名、删除、升级/降级层级）。
-- feat: 新增源文件校验告警（缩进、格式错误、重复标题）。
-- test: 新增解析器与源编辑器的完整单元测试。
-- ci: 新增跨平台单元测试与 Ubuntu 集成测试工作流。
-- chore: 完善发布元信息并新增语义化版本发布文档。
+## [0.2.8] - 2026-03-13
+
+- feat: 在 skill 指南、提示词模板与项目接入流程中保留 Where 的层级布局语义。
+- test: 为 Codex setup guide 生成逻辑补充回归测试。
+- refactor: 拆分 skill setup guide 生成模块，便于独立测试。
