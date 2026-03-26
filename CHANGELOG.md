@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-03-27
+
+- feat: auto-archive overwritten plans by default and add richer plan history management actions.
+- docs: update skill prompts and repo guidance so agents preserve disappearing plan content in history.
+
 ## [0.2.9] - 2026-03-13
 
 - fix: make skill setup guide path assertions cross-platform so CI and Release VSIX pass on Linux and macOS.

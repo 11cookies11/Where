@@ -8,6 +8,11 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-03-27
+
+- feat: 默认自动归档被覆盖的计划内容，并补充更完整的计划历史管理动作。
+- docs: 更新 skill 提示词与仓库指引，让 agent 在改写计划时先保留消失内容。
+
 ## [0.2.9] - 2026-03-13
 
 - fix: 修复 skill setup guide 路径断言的跨平台兼容性问题，确保 Linux 和 macOS 上的 CI / Release VSIX 通过。
