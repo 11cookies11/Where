@@ -40,6 +40,7 @@
     "onCommand:where.openSourceFile",
     "onCommand:where.openWhereSettings",
     "onCommand:where.archiveCurrentPlan",
+    "onCommand:where.managePlanHistory",
     "onCommand:where.queryPlanHistory",
     "onCommand:where.writeTaskToSource",
     "onCommand:where.validateSource",
@@ -73,6 +74,10 @@
       {
         "command": "where.archiveCurrentPlan",
         "title": "Where: Archive Current Plan"
+      },
+      {
+        "command": "where.managePlanHistory",
+        "title": "Where: Manage Plan History"
       },
       {
         "command": "where.queryPlanHistory",
@@ -196,6 +201,9 @@
           "command": "where.archiveCurrentPlan"
         },
         {
+          "command": "where.managePlanHistory"
+        },
+        {
           "command": "where.queryPlanHistory"
         },
         {
@@ -231,6 +239,11 @@
           "type": "string",
           "default": ".where-history.json",
           "description": "Workspace-relative JSON file used to store archived plan snapshots."
+        },
+        "where.history.autoArchive": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically archive the previous source snapshot when the source plan file changes."
         }
       }
     }

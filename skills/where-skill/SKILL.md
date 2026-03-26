@@ -9,6 +9,8 @@ Keep the source-of-truth plan file valid, concise, and aligned with real executi
 
 Treat indentation as product behavior, not cosmetic formatting. Where renders nested tasks as a collapsible multi-level tree, so flattening branches changes the UI layout and loses planning context.
 
+Plan history is enabled by default in Where. When you update the plan and older content will disappear, preserve that previous snapshot in history instead of discarding it. Prefer archiving before any destructive rewrite.
+
 ## Use this workflow
 
 1. Locate the plan file (default `.where-agent-progress.md`).
@@ -17,8 +19,9 @@ Treat indentation as product behavior, not cosmetic formatting. Where renders ne
 4. Keep status transitions explicit (`[ ] -> [~] -> [x]` or `[!]`).
 5. Keep hierarchy stable with 2-space indentation increments.
 6. Preserve or create indentation-based multi-level nesting so Where keeps the intended board/sidebar layout.
-7. Finish by validating format via `scripts/validate_where_plan.ps1`.
-8. If validation fails or file state is inconsistent, follow `references/error-handling.md`.
+7. If the edit will replace or remove existing content, archive the current plan first so the previous snapshot remains available.
+8. Finish by validating format via `scripts/validate_where_plan.ps1`.
+9. If validation fails or file state is inconsistent, follow `references/error-handling.md`.
 
 ## Enforce trigger boundary
 
@@ -44,6 +47,7 @@ Treat indentation as product behavior, not cosmetic formatting. Where renders ne
 - Prefer one active `[~]` parent task at a time unless parallel work is clearly intended.
 - Mark completed parent and relevant children `[x]` together.
 - Preserve branch meaning: parent tasks describe outcomes, child tasks describe scoped steps inside that branch.
+- Default history is on. If plan content shrinks, make sure the removed material is preserved through the history workflow.
 
 ## Hierarchy example
 

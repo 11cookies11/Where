@@ -1,6 +1,7 @@
 ﻿import * as vscode from "vscode";
 import * as path from "path";
 import { promises as fs } from "fs";
+import { buildArchivedPlanPreviewMarkdown, PlanHistoryEntry } from "./historyHelpers";
 import { PlanData, ProgressStore, Task, statusLabel } from "./progressStore";
 import { buildSkillSetupGuide, resolveSetupGuidePaths, SkillSetupTarget } from "./skillSetupGuide";
 
@@ -83,10 +84,25 @@ export function activate(context: vscode.ExtensionContext): void {
     const config = vscode.workspace.getConfiguration("where");
     const sourceFile = config.get<string>("sourceFile")?.trim() || ".where-agent-progress.md";
     watcher = vscode.workspace.createFileSystemWatcher(`**/${sourceFile}`);
-    const onSourceChange = () => store.notifyChanged();
-    watcher.onDidChange(onSourceChange, undefined, context.subscriptions);
-    watcher.onDidCreate(onSourceChange, undefined, context.subscriptions);
-    watcher.onDidDelete(onSourceChange, undefined, context.subscriptions);
+    const onSourceChange = async (): Promise<void> => {
+      try {
+        await store.handleObservedSourceChange();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to archive plan history.";
+        vscode.window.showErrorMessage(message);
+      } finally {
+        store.notifyChanged();
+      }
+    };
+    watcher.onDidChange(() => {
+      void onSourceChange();
+    }, undefined, context.subscriptions);
+    watcher.onDidCreate(() => {
+      void onSourceChange();
+    }, undefined, context.subscriptions);
+    watcher.onDidDelete(() => {
+      void onSourceChange();
+    }, undefined, context.subscriptions);
     context.subscriptions.push(watcher);
   };
   setupWatcher();
@@ -115,7 +131,7 @@ export function activate(context: vscode.ExtensionContext): void {
       const action = await vscode.window.showQuickPick(
         [
           { label: "Archive Current Plan", command: "where.archiveCurrentPlan" },
-          { label: "Query Plan History", command: "where.queryPlanHistory" },
+          { label: "Manage Plan History", command: "where.managePlanHistory" },
           { label: "Open Source File", command: "where.openSourceFile" },
           { label: "Setup Skill For Current Project", command: "where.setupSkillForProject" },
           { label: "Write Task To Source", command: "where.writeTaskToSource" },
@@ -354,45 +370,11 @@ export function activate(context: vscode.ExtensionContext): void {
         vscode.window.showErrorMessage(message);
       }
     }),
+    vscode.commands.registerCommand("where.managePlanHistory", async () => {
+      await showPlanHistoryManager(store);
+    }),
     vscode.commands.registerCommand("where.queryPlanHistory", async () => {
-      try {
-        const entries = await store.listArchivedPlans();
-        if (entries.length === 0) {
-          vscode.window.showInformationMessage("No archived plans found.");
-          return;
-        }
-        const pick = await vscode.window.showQuickPick(
-          entries.map((entry) => ({
-            label: entry.title,
-            description: formatArchivedAt(entry.archivedAt),
-            detail: `Source: ${entry.sourceFile}`,
-            entry
-          })),
-          { placeHolder: "Select an archived plan to preview" }
-        );
-        if (!pick) {
-          return;
-        }
-        const preview = [
-          `# Archived Plan Preview: ${pick.entry.title}`,
-          "",
-          `- Archived At: ${pick.entry.archivedAt}`,
-          `- Source: ${pick.entry.sourceFile}`,
-          "",
-          "## Snapshot",
-          "",
-          pick.entry.snapshot,
-          ""
-        ].join("\n");
-        const doc = await vscode.workspace.openTextDocument({
-          language: "markdown",
-          content: preview
-        });
-        await vscode.window.showTextDocument(doc, { preview: false });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Failed to query plan history.";
-        vscode.window.showErrorMessage(message);
-      }
+      await showPlanHistoryManager(store);
     }),
     vscode.commands.registerCommand("where.writeTaskToSource", async () => {
       const title = await vscode.window.showInputBox({
@@ -441,10 +423,19 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
+  void store.primeObservedSourceSnapshot().catch((error) => {
+    const message = error instanceof Error ? error.message : "Failed to prime source history cache.";
+    vscode.window.showErrorMessage(message);
+  });
+
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration("where.sourceFile")) {
         setupWatcher();
+        void store.primeObservedSourceSnapshot().catch((error) => {
+          const message = error instanceof Error ? error.message : "Failed to refresh history cache.";
+          vscode.window.showErrorMessage(message);
+        });
         store.notifyChanged();
       }
     })
@@ -461,6 +452,111 @@ export function activate(context: vscode.ExtensionContext): void {
 export function deactivate(): void {
   dashboardPanel?.dispose();
   dashboardPanel = undefined;
+}
+
+async function showPlanHistoryManager(store: ProgressStore): Promise<void> {
+  try {
+    const entries = await store.listArchivedPlans();
+    if (entries.length === 0) {
+      vscode.window.showInformationMessage("No archived plans found.");
+      return;
+    }
+
+    const pick = await vscode.window.showQuickPick(
+      entries.map((entry) => ({
+        label: entry.title,
+        description: `${formatArchivedAt(entry.archivedAt)} · ${entry.id}`,
+        detail: `Source: ${entry.sourceFile}`,
+        entry
+      })),
+      { placeHolder: "Select an archived plan" }
+    );
+    if (!pick) {
+      return;
+    }
+
+    await presentArchivedPlanActions(store, pick.entry);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to manage plan history.";
+    vscode.window.showErrorMessage(message);
+  }
+}
+
+async function presentArchivedPlanActions(store: ProgressStore, entry: PlanHistoryEntry): Promise<void> {
+  const action = await vscode.window.showQuickPick(
+    [
+      { label: "Preview Snapshot", value: "preview" as const },
+      { label: "Restore To Source File", value: "restore" as const },
+      { label: "Copy Snapshot", value: "copy" as const },
+      { label: "Open Raw History File", value: "open-history" as const },
+      { label: "Delete Archived Copy", value: "delete" as const }
+    ],
+    {
+      placeHolder: `Manage ${entry.title}`
+    }
+  );
+
+  if (!action) {
+    return;
+  }
+
+  switch (action.value) {
+    case "preview": {
+      const doc = await vscode.workspace.openTextDocument({
+        language: "markdown",
+        content: buildArchivedPlanPreviewMarkdown(entry)
+      });
+      await vscode.window.showTextDocument(doc, { preview: false });
+      return;
+    }
+    case "restore": {
+      const pick = await vscode.window.showWarningMessage(
+        "Restore this archived plan to the source file? This will overwrite the current source file.",
+        { modal: true },
+        "Restore"
+      );
+      if (pick !== "Restore") {
+        return;
+      }
+      const restored = await store.restoreArchivedPlan(entry.id);
+      const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(restored.filePath));
+      await vscode.window.showTextDocument(doc, { preview: false });
+      vscode.window.showInformationMessage(`Restored archived plan: ${restored.title}.`);
+      return;
+    }
+    case "copy": {
+      await vscode.env.clipboard.writeText(entry.snapshot);
+      vscode.window.showInformationMessage("Archived snapshot copied to clipboard.");
+      return;
+    }
+    case "open-history": {
+      const uri = store.resolveHistoryUri();
+      if (!uri) {
+        vscode.window.showWarningMessage("History file is not available yet.");
+        return;
+      }
+      const doc = await vscode.workspace.openTextDocument(uri);
+      await vscode.window.showTextDocument(doc, { preview: false });
+      return;
+    }
+    case "delete": {
+      const pick = await vscode.window.showWarningMessage(
+        "Delete this archived plan from history?",
+        { modal: true },
+        "Delete"
+      );
+      if (pick !== "Delete") {
+        return;
+      }
+      const deleted = await store.deleteArchivedPlan(entry.id);
+      if (!deleted) {
+        vscode.window.showWarningMessage("Archived plan was not found in history.");
+        return;
+      }
+      vscode.window.showInformationMessage("Archived plan deleted from history.");
+      return;
+    }
+  }
 }
 
 function iconByStatus(status: Task["status"]): vscode.ThemeIcon {

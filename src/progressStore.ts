@@ -3,6 +3,11 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as vscode from "vscode";
 import {
+  createNewHistoryEntryId,
+  normalizeHistoryEntry,
+  PlanHistoryEntry
+} from "./historyHelpers";
+import {
   ParseWarning,
   PlanData,
   TaskStatus,
@@ -23,13 +28,6 @@ const DEFAULT_HISTORY_FILE = ".where-history.json";
 const AGENTS_FILE_NAME = "AGENTS.md";
 const DEFAULT_TITLE = "Agent Plan";
 
-type PlanHistoryEntry = {
-  archivedAt: string;
-  title: string;
-  sourceFile: string;
-  snapshot: string;
-};
-
 type PlanHistoryFile = {
   version: 1;
   entries: PlanHistoryEntry[];
@@ -38,6 +36,8 @@ type PlanHistoryFile = {
 export class ProgressStore {
   private readonly onDidChangeEmitter = new vscode.EventEmitter<void>();
   public readonly onDidChange = this.onDidChangeEmitter.event;
+  private lastObservedSourceText: string | null = null;
+  private lastObservedTitle: string = DEFAULT_TITLE;
 
   public notifyChanged(): void {
     this.onDidChangeEmitter.fire();
@@ -53,8 +53,11 @@ export class ProgressStore {
       const text = await fs.readFile(filePath, "utf8");
       const stat = await fs.stat(filePath);
       const updatedAt = stat.mtime.toISOString();
+      this.syncObservedSourceSnapshot(text);
       return this.parseMarkdownPlan(text, updatedAt);
     } catch {
+      this.lastObservedSourceText = null;
+      this.lastObservedTitle = DEFAULT_TITLE;
       return null;
     }
   }
@@ -70,6 +73,7 @@ export class ProgressStore {
     } catch {
       const template = defaultPlanTemplate("Where Plugin Progress");
       await fs.writeFile(filePath, `${template}\n`, "utf8");
+      this.syncObservedSourceSnapshot(`${template}\n`);
       this.notifyChanged();
       return { filePath, created: true };
     }
@@ -81,7 +85,9 @@ export class ProgressStore {
       throw new Error("Open a workspace folder first.");
     }
     const nextTitle = title?.trim() || DEFAULT_TITLE;
-    await fs.writeFile(filePath, `${defaultPlanTemplate(nextTitle)}\n`, "utf8");
+    const nextText = `${defaultPlanTemplate(nextTitle)}\n`;
+    await fs.writeFile(filePath, nextText, "utf8");
+    this.syncObservedSourceSnapshot(nextText);
     this.notifyChanged();
   }
 
@@ -156,17 +162,8 @@ export class ProgressStore {
     }
 
     const source = await this.readSourceText();
-    const plan = parseMarkdownPlanText(source, new Date().toISOString(), DEFAULT_TITLE);
-    const title = plan.title.trim() || DEFAULT_TITLE;
-    const archivedAt = new Date().toISOString();
-    const current = await this.readHistoryFile(historyPath);
-    current.entries.push({
-      archivedAt,
-      title,
-      sourceFile: path.basename(sourcePath),
-      snapshot: source.trimEnd()
-    });
-    await fs.writeFile(historyPath, `${JSON.stringify(current, null, 2)}\n`, "utf8");
+    const title = this.extractTitle(source);
+    const archivedAt = await this.archiveSnapshot(historyPath, sourcePath, source, title);
     return { filePath: historyPath, title, archivedAt };
   }
 
@@ -179,8 +176,89 @@ export class ProgressStore {
     return [...history.entries].sort((a, b) => b.archivedAt.localeCompare(a.archivedAt));
   }
 
+  public async deleteArchivedPlan(entryId: string): Promise<boolean> {
+    const historyPath = this.resolveHistoryFilePath();
+    if (!historyPath) {
+      throw new Error("Open a workspace folder first.");
+    }
+
+    const history = await this.readHistoryFile(historyPath);
+    const index = history.entries.findIndex((entry) => entry.id === entryId);
+    if (index < 0) {
+      return false;
+    }
+
+    history.entries.splice(index, 1);
+    await this.writeHistoryFile(historyPath, history);
+    return true;
+  }
+
+  public async restoreArchivedPlan(entryId: string): Promise<{ filePath: string; title: string; archivedAt: string }> {
+    const sourcePath = this.resolveSourceFilePath();
+    const historyPath = this.resolveHistoryFilePath();
+    if (!sourcePath || !historyPath) {
+      throw new Error("Open a workspace folder first.");
+    }
+
+    const history = await this.readHistoryFile(historyPath);
+    const entry = history.entries.find((item) => item.id === entryId);
+    if (!entry) {
+      throw new Error("Archived plan not found.");
+    }
+
+    try {
+      await fs.access(sourcePath);
+    } catch {
+      const restoredText = `${entry.snapshot.trimEnd()}\n`;
+      await fs.writeFile(sourcePath, restoredText, "utf8");
+      this.syncObservedSourceSnapshot(restoredText);
+      this.notifyChanged();
+      return { filePath: sourcePath, title: entry.title, archivedAt: entry.archivedAt };
+    }
+
+    await this.writeSourceWithRetry(sourcePath, () => `${entry.snapshot.trimEnd()}\n`);
+    this.notifyChanged();
+    return { filePath: sourcePath, title: entry.title, archivedAt: entry.archivedAt };
+  }
+
+  public async primeObservedSourceSnapshot(): Promise<void> {
+    const source = await this.readSourceTextIfExists();
+    this.syncObservedSourceSnapshot(source);
+  }
+
+  public async handleObservedSourceChange(): Promise<void> {
+    const sourcePath = this.resolveSourceFilePath();
+    if (!sourcePath) {
+      return;
+    }
+
+    const current = await this.readSourceTextIfExists();
+    const shouldArchive = this.shouldAutoArchiveHistory();
+    if (shouldArchive && this.lastObservedSourceText && current !== this.lastObservedSourceText) {
+      const historyPath = this.resolveHistoryFilePath();
+      if (historyPath) {
+        await this.archiveSnapshot(
+          historyPath,
+          sourcePath,
+          this.lastObservedSourceText,
+          this.lastObservedTitle
+        );
+      }
+    }
+
+    this.syncObservedSourceSnapshot(current);
+  }
+
   public resolveSourceUri(): vscode.Uri | null {
     const filePath = this.resolveSourceFilePath();
+    if (!filePath) {
+      return null;
+    }
+    return vscode.Uri.file(filePath);
+  }
+
+  public resolveHistoryUri(): vscode.Uri | null {
+    const filePath = this.resolveHistoryFilePath();
     if (!filePath) {
       return null;
     }
@@ -231,6 +309,19 @@ export class ProgressStore {
     }
   }
 
+  private async readSourceTextIfExists(): Promise<string | null> {
+    const filePath = this.resolveSourceFilePath();
+    if (!filePath) {
+      return null;
+    }
+
+    try {
+      return await fs.readFile(filePath, "utf8");
+    } catch {
+      return null;
+    }
+  }
+
   private async writeSourceWithRetry(
     filePath: string,
     mutator: (source: string) => string
@@ -248,6 +339,7 @@ export class ProgressStore {
         throw new Error("Source file changed during update. Please retry.");
       }
       await fs.writeFile(filePath, next, "utf8");
+      this.syncObservedSourceSnapshot(next);
       return;
     }
   }
@@ -278,6 +370,11 @@ export class ProgressStore {
     return config.get<string>("historyFile")?.trim() || DEFAULT_HISTORY_FILE;
   }
 
+  private shouldAutoArchiveHistory(): boolean {
+    const config = vscode.workspace.getConfiguration("where");
+    return config.get<boolean>("history.autoArchive", true);
+  }
+
   private async readHistoryFile(filePath: string): Promise<PlanHistoryFile> {
     try {
       const text = await fs.readFile(filePath, "utf8");
@@ -287,12 +384,7 @@ export class ProgressStore {
           version: 1,
           entries: parsed.entries
             .filter((entry): entry is PlanHistoryEntry => isValidHistoryEntry(entry))
-            .map((entry) => ({
-              archivedAt: entry.archivedAt,
-              title: entry.title,
-              sourceFile: entry.sourceFile,
-              snapshot: entry.snapshot
-            }))
+            .map((entry, index) => normalizeHistoryEntry(entry, index))
         };
       }
       throw new Error("Invalid history file format.");
@@ -309,6 +401,39 @@ export class ProgressStore {
       }
       throw new Error("Failed to read history file.");
     }
+  }
+
+  private async writeHistoryFile(filePath: string, history: PlanHistoryFile): Promise<void> {
+    await fs.writeFile(filePath, `${JSON.stringify(history, null, 2)}\n`, "utf8");
+  }
+
+  private syncObservedSourceSnapshot(sourceText: string | null): void {
+    this.lastObservedSourceText = sourceText;
+    this.lastObservedTitle = sourceText ? this.extractTitle(sourceText) : DEFAULT_TITLE;
+  }
+
+  private extractTitle(sourceText: string): string {
+    const plan = parseMarkdownPlanText(sourceText, new Date().toISOString(), DEFAULT_TITLE);
+    return plan.title.trim() || DEFAULT_TITLE;
+  }
+
+  private async archiveSnapshot(
+    historyPath: string,
+    sourcePath: string,
+    snapshot: string,
+    title: string
+  ): Promise<string> {
+    const current = await this.readHistoryFile(historyPath);
+    const archivedAt = new Date().toISOString();
+    current.entries.push({
+      id: createNewHistoryEntryId(),
+      archivedAt,
+      title: title.trim() || DEFAULT_TITLE,
+      sourceFile: path.basename(sourcePath),
+      snapshot: snapshot.trimEnd()
+    });
+    await this.writeHistoryFile(historyPath, current);
+    return archivedAt;
   }
 
   public shouldCreateAgentsOnInit(): boolean {
@@ -411,12 +536,13 @@ function newTaskId(): string {
   return `where-${randomUUID().replace(/-/g, "").slice(0, 12)}`;
 }
 
-function isValidHistoryEntry(value: unknown): value is PlanHistoryEntry {
+function isValidHistoryEntry(value: unknown): value is Omit<PlanHistoryEntry, "id"> & Partial<Pick<PlanHistoryEntry, "id">> {
   if (!value || typeof value !== "object") {
     return false;
   }
   const entry = value as Partial<PlanHistoryEntry>;
   return (
+    (entry.id === undefined || typeof entry.id === "string") &&
     typeof entry.archivedAt === "string" &&
     typeof entry.title === "string" &&
     typeof entry.sourceFile === "string" &&

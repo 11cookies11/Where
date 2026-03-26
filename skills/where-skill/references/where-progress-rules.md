@@ -43,6 +43,8 @@
 
 ## History Rules
 
+- History is enabled by default.
 - Update only the source plan file (default `.where-agent-progress.md`).
 - Do not write history JSON directly.
 - Use extension commands for history operations.
+- When a rewrite removes older content, keep the removed snapshot available in history first.

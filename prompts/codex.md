@@ -2,6 +2,7 @@
 
 You are responsible for maintaining the project progress source file (`where.sourceFile`, default: `.where-agent-progress.md`).
 Treat indentation as real UI structure for Where: parent/child nesting drives the task tree and whiteboard-style grouping. Do not flatten nested work into sibling lines unless the user explicitly asks to restructure the plan.
+History is enabled by default. If you are about to rewrite the plan in a way that removes existing content, preserve the old snapshot first so the removed work remains available in Where history.
 
 Example:
 Wrong:
@@ -28,6 +29,7 @@ Rules:
 - Do not skip indentation levels.
 - Where tree expand/collapse is inferred from indentation. Do not use `<details>` or other custom folding syntax.
 - Preserve existing branches whenever possible; attach new work under the correct parent instead of creating unnecessary top-level siblings.
+- Before destructive plan rewrites, archive the current plan or otherwise preserve the disappearing content in history.
 - Keep sibling tasks at the same indentation width.
 - Keep one task per line.
 - When status changes, update existing tasks instead of appending duplicates.

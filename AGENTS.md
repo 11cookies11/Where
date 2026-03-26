@@ -60,10 +60,14 @@ Status mapping:
 ## History Management (Extension-owned)
 
 - Plan history is managed by the Where extension, not by agents.
+- History is enabled by default.
+- Auto-archive setting: `where.history.autoArchive` (default: `true`).
 - History file setting: `where.historyFile` (default: `.where-history.json`).
+- When updating or replacing the source plan, preserve the previous snapshot instead of discarding it.
 - Agents should only update the source plan file (`where.sourceFile`) and must not write/append history JSON directly.
 - Use extension commands for history operations:
   - `Where: Archive Current Plan`
+  - `Where: Manage Plan History`
   - `Where: Query Plan History`
   - `Where: Open Where Settings` (GUI entry)
 

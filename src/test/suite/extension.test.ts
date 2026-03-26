@@ -15,6 +15,7 @@ suite("Extension Test Suite", () => {
       "where.openSourceFile",
       "where.openWhereSettings",
       "where.archiveCurrentPlan",
+      "where.managePlanHistory",
       "where.queryPlanHistory",
       "where.writeTaskToSource",
       "where.cycleTaskStatus",

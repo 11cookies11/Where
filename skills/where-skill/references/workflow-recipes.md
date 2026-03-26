@@ -41,3 +41,9 @@
 4. Merge status/title updates into canonical line.
 5. Remove duplicates only after confirming children remain attached.
 6. If non-canonical IDs are removed, keep a one-line audit note for manual cleanup.
+
+## Recipe 7: Preserve Shrinking Plans
+
+1. If the next edit removes or overwrites existing plan content, archive the current plan first.
+2. Keep the disappearing snapshot available in history for later article-writing or retrospective work.
+3. Then update the source plan file normally.
