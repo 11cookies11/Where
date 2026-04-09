@@ -59,7 +59,7 @@ jobs:
             -MinSuccessRate 0.85 `
             -MinRecoveryRate 0.80
       - name: Upload skill eval report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: where-skill-eval-report
           path: reports/where-skill-eval-ci.md
